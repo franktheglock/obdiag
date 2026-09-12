@@ -1,0 +1,92 @@
+name: OBDiag
+
+options:
+  minimumXcodeGenVersion: "2.40.0"
+  bundleIdPrefix: com.obdiag
+  deploymentTarget:
+    iOS: "26.0"
+  createIntermediateGroups: true
+  groupSortPosition: top
+  generateEmptyDirectories: true
+
+settings:
+  base:
+    SWIFT_VERSION: "5.0"
+    SWIFT_STRICT_CONCURRENCY: minimal
+    SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY: NO
+    DEVELOPMENT_TEAM: ""
+    CODE_SIGN_STYLE: Automatic
+    ENABLE_USER_SCRIPT_SANDBOXING: NO
+
+targets:
+  OBDiag:
+    type: application
+    platform: iOS
+    sources:
+      - path: OBDiag
+        excludes:
+          - "Resources/StoreKit/**"
+    postBuildScripts:
+      - name: Strip extended attributes
+        basedOnDependencyAnalysis: false
+        script: xattr -cr "$TARGET_BUILD_DIR/$WRAPPER_NAME" 2>/dev/null || true
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.obdiag.app
+        PRODUCT_NAME: OBDiag
+        MARKETING_VERSION: "1.0"
+        CURRENT_PROJECT_VERSION: "1"
+        TARGETED_DEVICE_FAMILY: "1,2"
+        GENERATE_INFOPLIST_FILE: YES
+        INFOPLIST_KEY_CFBundleDisplayName: OBDiag
+        INFOPLIST_KEY_LSApplicationCategoryType: public.app-category.utilities
+        INFOPLIST_KEY_NSBluetoothAlwaysUsageDescription: "OBDiag connects to your Bluetooth OBD-II adapter to read live engine data and diagnostic trouble codes."
+        INFOPLIST_KEY_NSBluetoothPeripheralUsageDescription: "OBDiag connects to your Bluetooth OBD-II adapter to read live engine data and diagnostic trouble codes."
+        INFOPLIST_KEY_NSLocalNetworkUsageDescription: "OBDiag connects to a local AI model server (LM Studio) on your network."
+        INFOPLIST_KEY_NSCameraUsageDescription: "OBDiag uses the camera so you can photograph warning lights, leaks or damaged parts and ask the AI assistant about them."
+        INFOPLIST_KEY_NSPhotoLibraryAddUsageDescription: "OBDiag saves photos you attached in chat back to your photo library when you ask it to."
+        INFOPLIST_KEY_UIApplicationSceneManifest_Generation: YES
+        INFOPLIST_KEY_UILaunchScreen_Generation: YES
+        INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents: YES
+        INFOPLIST_KEY_UIStatusBarStyle: UIStatusBarStyleLightContent
+        INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone: UIInterfaceOrientationPortrait
+        INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad: "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight"
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+        ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME: AccentColor
+        ENABLE_PREVIEWS: YES
+        SUPPORTS_MACCATALYST: NO
+        INCLUDE_ONLY_APPLE_FRAMEWORKS: YES
+
+  OBDiagUITests:
+    type: bundle.ui-testing
+    platform: iOS
+    sources:
+      - path: OBDiagUITests
+    dependencies:
+      - target: OBDiag
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.obdiag.app.uitests
+        TEST_TARGET_NAME: OBDiag
+        GENERATE_INFOPLIST_FILE: YES
+        SWIFT_VERSION: "5.0"
+
+schemes:
+  OBDiag:
+    build:
+      targets:
+        OBDiag: all
+        OBDiagUITests: [test]
+    run:
+      config: Debug
+      storeKitConfiguration: OBDiag/Resources/StoreKit/OBDiag.storekit
+    test:
+      config: Debug
+      targets:
+        - OBDiagUITests
+    profile:
+      config: Release
+    analyze:
+      config: Debug
+    archive:
+      config: Release

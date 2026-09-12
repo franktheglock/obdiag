@@ -1,0 +1,9 @@
+# Build artifacts
+build/
+DerivedData/
+*.xcuserstate
+xcuserdata/
+.DS_Store
+
+# Eval secrets and reports (see the `eval` branch)
+.eval/
