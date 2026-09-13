@@ -144,20 +144,41 @@ struct OBDResponse: Sendable {
         lines.first { !$0.trimmed.isEmpty && !$0.trimmed.hasPrefix(">") }
     }
 
-    private static func hexBytes(in line: String) -> [UInt8]? {
-        let compact = line.replacingOccurrences(of: " ", with: "")
-        guard !compact.isEmpty, compact.count % 2 == 0 else { return nil }
-        let hexCharacters = CharacterSet(charactersIn: "0123456789ABCDEFabcdef")
-        guard compact.unicodeScalars.allSatisfy({ hexCharacters.contains($0) }) else { return nil }
+    /// Parses one adapter line into bytes.
+    ///
+    /// Adapters format payloads inconsistently: ISO-TP responses may be split
+    /// across lines prefixed with a frame index (`0: 49 02 01 …`), the first
+    /// frame may carry an odd-length length token (`014`), and CAN headers may
+    /// be present. Non-hex lines (`NO DATA`, `SEARCHING…`, `BUS INIT: ERROR`)
+    /// return nil so they are ignored.
+    static func hexBytes(in line: String) -> [UInt8]? {
+        let tokens = line.split(whereSeparator: { $0 == " " || $0 == "\t" })
+        guard !tokens.isEmpty else { return nil }
+
         var bytes: [UInt8] = []
-        var index = compact.startIndex
-        while index < compact.endIndex {
-            let next = compact.index(index, offsetBy: 2)
-            guard let byte = UInt8(compact[index..<next], radix: 16) else { return nil }
-            bytes.append(byte)
-            index = next
+        var sawHex = false
+
+        for rawToken in tokens {
+            var token = rawToken
+            // ISO-TP frame index, e.g. "0:" or "1:".
+            if token.hasSuffix(":") {
+                token = token.dropLast()
+                if token.isEmpty { continue }
+            }
+            guard token.allSatisfy({ $0.isHexDigit }) else { return nil }
+            sawHex = true
+            // Odd-length token is a length/PCI byte pair, e.g. "014" → 01 04.
+            if token.count % 2 == 1 { token = "0" + token }
+
+            var index = token.startIndex
+            while index < token.endIndex {
+                let next = token.index(index, offsetBy: 2)
+                guard let byte = UInt8(token[index..<next], radix: 16) else { return nil }
+                bytes.append(byte)
+                index = next
+            }
         }
-        return bytes
+        return sawHex ? bytes : nil
     }
 
     private static func firstIndex(of pattern: [UInt8], in bytes: [UInt8]) -> Int? {
@@ -248,5 +269,65 @@ protocol OBDTransport: AnyObject {
 extension OBDConnection {
     func query(_ command: String) async throws -> OBDResponse {
         try await query(command, timeout: 3)
+    }
+}
+
+// MARK: - VIN extraction
+
+/// Pulls the 17-character VIN out of a mode 09 PID 02 response.
+///
+/// Real adapters return this in several shapes — one assembled line, one line
+/// per ISO-TP frame with a `0:`/`1:` index, frames with the `49 02` header
+/// repeated, or raw CAN frames with a header and PCI byte. Parsing is therefore
+/// structural (per line) rather than "everything after the first header".
+enum VINParser {
+    static func extract(from response: OBDResponse) -> String? {
+        extract(fromLines: response.lines)
+    }
+
+    static func extract(fromLines lines: [String]) -> String? {
+        var payload: [UInt8] = []
+        var inSequence = false
+
+        for line in lines {
+            guard let bytes = OBDResponse.hexBytes(in: line), !bytes.isEmpty else { continue }
+
+            if let header = firstIndex(of: [0x49, 0x02], in: bytes) {
+                inSequence = true
+                var rest = Array(bytes[(header + 2)...])
+                // The byte after the header is the item/frame count or index.
+                if let first = rest.first, first <= 0x0F { rest.removeFirst() }
+                payload.append(contentsOf: rest)
+            } else if inSequence {
+                // Continuation frame. ISO-TP consecutive frames carry seven data
+                // bytes, so drop any CAN header + PCI byte by keeping the tail.
+                let rest = bytes.count > 7 ? Array(bytes.suffix(7)) : bytes
+                payload.append(contentsOf: rest)
+            }
+        }
+
+        guard inSequence else { return nil }
+
+        let characters: [Character] = payload.compactMap { byte in
+            guard byte >= 0x20, byte < 0x7F else { return nil }
+            let character = Character(UnicodeScalar(byte))
+            guard character.isLetter || character.isNumber else { return nil }
+            // I, O and Q never appear in a VIN — they are usually header or
+            // padding bytes that survived the conversion.
+            guard !"IOQ".contains(character) else { return nil }
+            return character
+        }
+
+        let vin = String(characters.prefix(17)).uppercased()
+        return Vehicle.isPlausibleVIN(vin) ? vin : nil
+    }
+
+    private static func firstIndex(of pattern: [UInt8], in bytes: [UInt8]) -> Int? {
+        guard !pattern.isEmpty, bytes.count >= pattern.count else { return nil }
+        for start in 0...(bytes.count - pattern.count)
+        where Array(bytes[start..<(start + pattern.count)]) == pattern {
+            return start
+        }
+        return nil
     }
 }

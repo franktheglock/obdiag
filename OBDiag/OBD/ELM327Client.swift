@@ -165,7 +165,8 @@ extension ELM327Client {
         _ = try? await query("ATS0")          // spaces off
         _ = try? await query("ATH0")          // headers off
         _ = try? await query("ATSP0")         // auto protocol
-        _ = try? await query("ATAT2")         // aggressive adaptive timing
+        _ = try? await query("ATAT1")         // adaptive timing (ATAT2 is only for J1850/ISO9141)
+        _ = try? await query("ATST 32")       // 200 ms response window; some ECUs are slow
 
         if let identifier = try? await query("ATI"), let line = identifier.firstTextLine {
             info.identifier = line
