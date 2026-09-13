@@ -105,6 +105,9 @@ final class ChatEngine {
     }
 
     private func makeClient() throws -> ChatCompletionClient {
+        #if DEBUG
+        if let clientOverride { return clientOverride }
+        #endif
         switch settings.provider {
         case .demo:
             if let demoAssistant { return demoAssistant }
@@ -120,6 +123,9 @@ final class ChatEngine {
     }
 
     var isConfigured: Bool {
+        #if DEBUG
+        if clientOverride != nil { return true }
+        #endif
         switch settings.provider {
         case .demo: return true
         case .openRouter: return !settings.openRouterAPIKey.isBlank
@@ -194,9 +200,30 @@ final class ChatEngine {
         Haptics.soft()
     }
 
+    #if DEBUG
+    /// Eval hook: answer clarifying questions automatically instead of waiting
+    /// for the user interface.
+    var autoAnswer: ((AskUserQuestion) -> String)?
+
+    /// Eval hook: inject a provider client directly, so evals never need a key
+    /// in settings or the Keychain.
+    var clientOverride: ChatCompletionClient?
+
+    /// Blocks until the current generation completes (or times out).
+    func waitUntilIdle(timeout: TimeInterval = 240) async {
+        let deadline = Date().addingTimeInterval(timeout)
+        while isGenerating, Date() < deadline {
+            try? await Task.sleep(nanoseconds: 100_000_000)
+        }
+    }
+    #endif
+
     // MARK: Ask-user bridge
 
     private func present(_ question: AskUserQuestion) async -> String {
+        #if DEBUG
+        if let autoAnswer { return autoAnswer(question) }
+        #endif
         pendingQuestion = question
         Haptics.soft()
         return await withCheckedContinuation { continuation in

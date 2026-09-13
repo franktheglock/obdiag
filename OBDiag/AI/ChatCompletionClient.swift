@@ -174,6 +174,11 @@ final class RemoteChatClient: ChatCompletionClient {
         usage.completionTokens = object["completion_tokens"]?.intValue ?? 0
         usage.totalTokens = object["total_tokens"]?.intValue ?? (usage.promptTokens + usage.completionTokens)
         usage.reasoningTokens = object["completion_tokens_details"]?["reasoning_tokens"]?.intValue ?? 0
+        // OpenAI/OpenRouter report cache reads inside prompt_tokens_details;
+        // Anthropic-style payloads use a separate cache_read_input_tokens field.
+        usage.cachedPromptTokens = object["prompt_tokens_details"]?["cached_tokens"]?.intValue
+            ?? object["cache_read_input_tokens"]?.intValue
+            ?? 0
         usage.costUSD = object["cost"]?.doubleValue ?? 0
         return usage
     }

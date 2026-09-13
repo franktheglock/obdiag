@@ -67,11 +67,13 @@ final class AppSettings {
 
     // MARK: Init
     private static let defaultsKey = "obdiag.settings.v1"
+    @ObservationIgnored private let defaults: UserDefaults
     @ObservationIgnored private var isLoaded = false
     @ObservationIgnored private var saveTask: Task<Void, Never>?
 
-    init() {
-        if let data = UserDefaults.standard.data(forKey: Self.defaultsKey),
+    init(defaults: UserDefaults = .standard) {
+        self.defaults = defaults
+        if let data = defaults.data(forKey: Self.defaultsKey),
            let snapshot = try? JSONDecoder.settings.decode(Snapshot.self, from: data) {
             apply(snapshot)
         }
@@ -120,7 +122,7 @@ final class AppSettings {
     private func saveNow() {
         let snapshot = Snapshot(from: self)
         guard let data = try? JSONEncoder.settings.encode(snapshot) else { return }
-        UserDefaults.standard.set(data, forKey: Self.defaultsKey)
+        defaults.set(data, forKey: Self.defaultsKey)
     }
 
     /// Forces a write; used on app background.
@@ -195,7 +197,7 @@ final class AppSettings {
         Keychain.delete(.openRouterAPIKey)
         Keychain.delete(.tinyFishAPIKey)
         Keychain.delete(.lmStudioAPIKey)
-        UserDefaults.standard.removeObject(forKey: Self.defaultsKey)
+        defaults.removeObject(forKey: Self.defaultsKey)
         onboardingComplete = false
         onboardingAnswers = OnboardingAnswers()
         unitSystem = .imperial

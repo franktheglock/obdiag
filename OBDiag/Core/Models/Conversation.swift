@@ -55,6 +55,8 @@ struct TokenUsage: Codable, Hashable, Sendable {
     var completionTokens: Int = 0
     var totalTokens: Int = 0
     var reasoningTokens: Int = 0
+    /// Prompt tokens served from a provider cache — billed at a steep discount.
+    var cachedPromptTokens: Int = 0
     var costUSD: Double = 0
 
     static func + (lhs: TokenUsage, rhs: TokenUsage) -> TokenUsage {
@@ -63,6 +65,7 @@ struct TokenUsage: Codable, Hashable, Sendable {
             completionTokens: lhs.completionTokens + rhs.completionTokens,
             totalTokens: lhs.totalTokens + rhs.totalTokens,
             reasoningTokens: lhs.reasoningTokens + rhs.reasoningTokens,
+            cachedPromptTokens: lhs.cachedPromptTokens + rhs.cachedPromptTokens,
             costUSD: lhs.costUSD + rhs.costUSD
         )
     }

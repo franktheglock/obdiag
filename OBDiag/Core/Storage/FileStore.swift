@@ -5,7 +5,20 @@ import Foundation
 enum FileStore {
     static let directoryName = "OBDiag"
 
+    #if DEBUG
+    /// Test/eval hook: redirects storage to a scratch directory.
+    static var overrideRoot: URL?
+    #endif
+
     static var directoryURL: URL {
+        #if DEBUG
+        if let overrideRoot {
+            if !FileManager.default.fileExists(atPath: overrideRoot.path) {
+                try? FileManager.default.createDirectory(at: overrideRoot, withIntermediateDirectories: true)
+            }
+            return overrideRoot
+        }
+        #endif
         let base = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask).first
             ?? FileManager.default.temporaryDirectory
         let url = base.appendingPathComponent(directoryName, isDirectory: true)

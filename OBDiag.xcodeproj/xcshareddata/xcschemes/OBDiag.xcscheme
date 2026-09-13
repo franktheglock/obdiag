@@ -29,6 +29,20 @@
             buildForAnalyzing = "NO">
             <BuildableReference
                BuildableIdentifier = "primary"
+               BlueprintIdentifier = "69B174A970A619090F45F766"
+               BuildableName = "OBDiagTests.xctest"
+               BlueprintName = "OBDiagTests"
+               ReferencedContainer = "container:OBDiag.xcodeproj">
+            </BuildableReference>
+         </BuildActionEntry>
+         <BuildActionEntry
+            buildForTesting = "YES"
+            buildForRunning = "NO"
+            buildForProfiling = "NO"
+            buildForArchiving = "NO"
+            buildForAnalyzing = "NO">
+            <BuildableReference
+               BuildableIdentifier = "primary"
                BlueprintIdentifier = "0E5AEF40053BEB84630452C4"
                BuildableName = "OBDiagUITests.xctest"
                BlueprintName = "OBDiagUITests"
@@ -58,9 +72,9 @@
             parallelizable = "NO">
             <BuildableReference
                BuildableIdentifier = "primary"
-               BlueprintIdentifier = "0E5AEF40053BEB84630452C4"
-               BuildableName = "OBDiagUITests.xctest"
-               BlueprintName = "OBDiagUITests"
+               BlueprintIdentifier = "69B174A970A619090F45F766"
+               BuildableName = "OBDiagTests.xctest"
+               BlueprintName = "OBDiagTests"
                ReferencedContainer = "container:OBDiag.xcodeproj">
             </BuildableReference>
          </TestableReference>

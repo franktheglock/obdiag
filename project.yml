@@ -57,6 +57,19 @@ targets:
         SUPPORTS_MACCATALYST: NO
         INCLUDE_ONLY_APPLE_FRAMEWORKS: YES
 
+  OBDiagTests:
+    type: bundle.unit-test
+    platform: iOS
+    sources:
+      - path: OBDiagTests
+    dependencies:
+      - target: OBDiag
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.obdiag.tests
+        GENERATE_INFOPLIST_FILE: YES
+        SWIFT_VERSION: "5.0"
+
   OBDiagUITests:
     type: bundle.ui-testing
     platform: iOS
@@ -76,6 +89,7 @@ schemes:
     build:
       targets:
         OBDiag: all
+        OBDiagTests: [test]
         OBDiagUITests: [test]
     run:
       config: Debug
@@ -83,7 +97,9 @@ schemes:
     test:
       config: Debug
       targets:
-        - OBDiagUITests
+        # Unit tests (incl. eval graders) run by default; UI tests are opt-in
+        # via -only-testing:OBDiagUITests because they are slow and flaky.
+        - OBDiagTests
     profile:
       config: Release
     analyze:
