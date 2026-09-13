@@ -53,9 +53,12 @@ final class AppEnvironment {
 
         chat.planProvider = { [weak subscriptions] in subscriptions?.plan ?? .free }
 
-        // Tidy up attachment files that no message references any more.
+        // Tidy up attachment files that no message references any more. Disk
+        // I/O, so it stays off the launch path.
         let referenced = Set(conversations.conversations.flatMap { $0.messages.flatMap(\.attachments) }.map(\.fileName))
-        AttachmentStore.prune(referencedFileNames: referenced)
+        Task.detached(priority: .utility) {
+            AttachmentStore.prune(referencedFileNames: referenced)
+        }
 
         #if DEBUG
         applyLaunchArguments()

@@ -12,6 +12,7 @@ struct VehicleDashboardView: View {
     @State private var showAllSensors = false
     @State private var selectedDTC: DiagnosticTroubleCode?
     @State private var selectedSensor: SensorKind?
+    @State private var hasAutoConnectedDemo = false
 
     private var obd: OBDSession { env.obd }
 
@@ -91,12 +92,15 @@ struct VehicleDashboardView: View {
             }
         }
         .onAppear {
-            // Auto-reconnect to the last adapter when the user asked us to.
-            guard !obd.isConnected, !obd.isDemo, env.settings.autoReconnect, obd.connectionState == .disconnected else { return }
-            if env.settings.demoAdapterEnabled {
+            guard !obd.isConnected, !obd.isDemo, obd.connectionState == .disconnected else { return }
+            if env.settings.demoAdapterEnabled, !hasAutoConnectedDemo {
+                hasAutoConnectedDemo = true
                 Task { await obd.connectDemo() }
-            } else if env.settings.preferredAdapterID != nil {
-                obd.startScan()
+            } else if env.settings.autoReconnect, let preferred = env.settings.preferredAdapterID {
+                // Bounded: if the adapter is not around (unplugged, out of
+                // range) the scan gives up after a few seconds instead of
+                // leaving the button spinning.
+                obd.startScan(bounded: true, autoConnectID: preferred)
             }
         }
     }

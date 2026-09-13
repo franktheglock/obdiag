@@ -53,7 +53,12 @@ targets:
         INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad: "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight"
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
         ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME: AccentColor
-        ENABLE_PREVIEWS: YES
+        # Debugging speed: previews inject a second dylib (__preview.dylib) and
+        # Xcode 16+ splits the app into OBDiag.debug.dylib, both of which LLDB
+        # must load before it can stop at a breakpoint. Turn them off for a
+        # normal debug loop; flip ENABLE_PREVIEWS back on if you want the canvas.
+        ENABLE_PREVIEWS: NO
+        ENABLE_DEBUG_DYLIB: NO
         SUPPORTS_MACCATALYST: NO
         INCLUDE_ONLY_APPLE_FRAMEWORKS: YES
 

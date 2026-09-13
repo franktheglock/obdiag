@@ -97,12 +97,20 @@ struct DeviceScanSheet: View {
         Group {
             if env.obd.availableAdapters.isEmpty {
                 HStack(spacing: 12) {
-                    ProgressView().controlSize(.small).tint(Palette.accent)
+                    if env.obd.connectionState == .scanning {
+                        ProgressView().controlSize(.small).tint(Palette.accent)
+                    } else {
+                        Image(systemName: "antenna.radiowaves.left.and.right.slash")
+                            .font(.system(size: 17, weight: .semibold))
+                            .foregroundStyle(Palette.textSecondary)
+                    }
                     VStack(alignment: .leading, spacing: 2) {
-                        Text("Looking for adapters…")
+                        Text(env.obd.connectionState == .scanning ? "Looking for adapters…" : "No adapters found")
                             .font(.obCallout)
                             .foregroundStyle(Palette.textPrimary)
-                        Text("Make sure the ignition is ON and the adapter's LED is blinking.")
+                        Text(env.obd.connectionState == .scanning
+                             ? "Make sure the ignition is ON and the adapter's LED is blinking."
+                             : "Check that it is plugged in, then scan again.")
                             .font(.obCaption)
                             .foregroundStyle(Palette.textTertiary)
                     }

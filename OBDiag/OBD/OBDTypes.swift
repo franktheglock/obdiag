@@ -131,12 +131,17 @@ struct OBDResponse: Sendable {
     }
 
     func payload(header: [UInt8]) -> [UInt8] {
-        for line in parsedHex {
-            if let index = Self.firstIndex(of: header, in: line) {
-                return Array(line[(index + header.count)...])
-            }
+        payloads(header: header).first ?? []
+    }
+
+    /// Every line that carries this header. A CAN vehicle can have several
+    /// modules answer the same request (engine, transmission, ABS …), and each
+    /// one reports its own codes — taking only the first line hides faults.
+    func payloads(header: [UInt8]) -> [[UInt8]] {
+        parsedHex.compactMap { line in
+            guard let index = Self.firstIndex(of: header, in: line) else { return nil }
+            return Array(line[(index + header.count)...])
         }
-        return []
     }
 
     /// First line that looks like human-readable text (for AT commands).

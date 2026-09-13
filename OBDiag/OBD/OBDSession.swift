@@ -69,6 +69,9 @@ final class OBDSession {
     private var realConnection: RealOBDConnection?
     private var demoConnection: DemoOBDConnection?
     private var pollTask: Task<Void, Never>?
+    private var scanWatchdog: Task<Void, Never>?
+    private var pendingAutoConnectID: String?
+    private var isIntentionalDisconnect = false
     private var misses: [SensorKind: Int] = [:]
     private var consecutiveTimeouts = 0
     private var lastBoost: Double?
@@ -123,16 +126,35 @@ final class OBDSession {
 
     // MARK: Adapter scanning
 
-    func startScan() {
+    /// Starts a scan. `bounded` scans stop on their own after a few seconds so
+    /// the UI can never be left in a permanent "scanning" state; pass
+    /// `autoConnectID` to connect automatically when that adapter appears.
+    func startScan(bounded: Bool = false, autoConnectID: String? = nil) {
         guard let real = ensureRealConnection() else { return }
         lastError = nil
         availableAdapters = []
+        pendingAutoConnectID = autoConnectID
         real.scan()
         connectionState = .scanning
         appendLog(.info, "Scanning for OBD-II adapters…")
+
+        scanWatchdog?.cancel()
+        scanWatchdog = Task { [weak self] in
+            let limit: TimeInterval = bounded ? 12 : 25
+            try? await Task.sleep(nanoseconds: UInt64(limit * 1_000_000_000))
+            guard !Task.isCancelled, let self, self.connectionState == .scanning else { return }
+            let found = !self.availableAdapters.isEmpty
+            self.stopScan()
+            if !found {
+                self.lastError = "No adapter found. Check that it is plugged in and the ignition is on."
+            }
+        }
     }
 
     func stopScan() {
+        scanWatchdog?.cancel()
+        scanWatchdog = nil
+        pendingAutoConnectID = nil
         realConnection?.stopScan()
         if !connectionState.isConnected {
             connectionState = .disconnected
@@ -144,7 +166,14 @@ final class OBDSession {
         guard mode != .demo else { return nil }
         let real = RealOBDConnection()
         real.onAdapters = { [weak self] adapters in
-            self?.availableAdapters = adapters
+            guard let self else { return }
+            self.availableAdapters = adapters
+            if let wanted = self.pendingAutoConnectID,
+               let match = adapters.first(where: { $0.id == wanted }) {
+                self.pendingAutoConnectID = nil
+                self.appendLog(.info, "Found \(match.name) — connecting…")
+                Task { await self.connect(to: match) }
+            }
         }
         real.onLog = { [weak self] entry in
             self?.append(entry)
@@ -164,6 +193,7 @@ final class OBDSession {
     func connect(to adapter: DiscoveredAdapter) async {
         guard let real = ensureRealConnection() else { return }
         connectionState = .connecting(adapter.name)
+        isIntentionalDisconnect = false
         lastError = nil
         appendLog(.info, "Connecting to \(adapter.name)…")
         do {
@@ -191,6 +221,7 @@ final class OBDSession {
             self?.handleUnexpectedDisconnect(nil)
         }
         demoConnection = demo
+        isIntentionalDisconnect = false
         connectionState = .initializing("Demo Adapter")
         appendLog(.info, "Starting demo session (simulated vehicle)")
         do {
@@ -217,6 +248,8 @@ final class OBDSession {
     }
 
     func disconnect() {
+        isIntentionalDisconnect = true
+        stopScan()
         stopPolling()
         connection?.disconnect()
         connection = nil
@@ -229,6 +262,15 @@ final class OBDSession {
     }
 
     private func handleUnexpectedDisconnect(_ error: Error?) {
+        // The user tapped Disconnect (or left the scan sheet): the transport's
+        // teardown callback must not re-label this as a failure.
+        if isIntentionalDisconnect {
+            connection = nil
+            mode = .none
+            consecutiveTimeouts = 0
+            connectionState = .disconnected
+            return
+        }
         stopPolling()
         connection = nil
         mode = .none
@@ -448,21 +490,34 @@ final class OBDSession {
         for (command, status, header) in [("03", DTCStatus.stored, UInt8(0x43)), ("07", .pending, UInt8(0x47)), ("0A", .permanent, UInt8(0x4A))] {
             guard let response = try? await connection.query(command, timeout: 4) else { continue }
             guard !response.isNoData else { continue }
-            let codes = DTCKnowledge.codes(fromPayload: response.payload(header: [header]))
-            for code in codes {
-                found.append(DTCKnowledge.makeCode(code, status: status))
+            // One payload per module that answered.
+            for payload in response.payloads(header: [header]) {
+                for code in DTCKnowledge.codes(fromPayload: payload) {
+                    found.append(DTCKnowledge.makeCode(code, status: status))
+                }
             }
-            if status == .stored { stored = codes }
+            if status == .stored {
+                stored = Array(Set(found.filter { $0.status == .stored }.map(\.code))).sorted()
+            }
         }
 
-        // Deduplicate identical code+status pairs.
-        var seen: Set<String> = []
-        dtcs = found
-            .filter { seen.insert($0.id).inserted }
-            .sorted { lhs, rhs in
-                if lhs.severity != rhs.severity { return lhs.severity > rhs.severity }
-                return lhs.code < rhs.code
+        // One row per code, keeping the most mature status — the same code
+        // often shows up as both stored and pending, which made our list look
+        // different from other scan tools.
+        var best: [String: DiagnosticTroubleCode] = [:]
+        for code in found {
+            if let existing = best[code.code] {
+                if Self.statusRank(code.status) > Self.statusRank(existing.status) {
+                    best[code.code] = code
+                }
+            } else {
+                best[code.code] = code
             }
+        }
+        dtcs = best.values.sorted { lhs, rhs in
+            if lhs.severity != rhs.severity { return lhs.severity > rhs.severity }
+            return lhs.code < rhs.code
+        }
         lastDTCScan = Date()
         garage.recordScan(vehicleID: garage.selectedVehicleID, codes: stored)
         appendLog(.info, "Fault scan: \(stored.count) stored, \(dtcs.count - stored.count) pending/permanent")
@@ -553,6 +608,15 @@ final class OBDSession {
 
     static func parseVIN(_ response: OBDResponse) -> String? {
         VINParser.extract(from: response)
+    }
+
+    /// Stored beats permanent beats pending when the same code appears twice.
+    private static func statusRank(_ status: DTCStatus) -> Int {
+        switch status {
+        case .stored: return 2
+        case .permanent: return 1
+        case .pending: return 0
+        }
     }
 
     var vinMismatchMessage: String? {
