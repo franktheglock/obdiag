@@ -223,18 +223,9 @@ final class SearchService {
         }
     }
 
-    #if DEBUG
-    /// Eval/test hooks: deterministic search and page content.
-    var backendOverride: SearchBackend?
-    var readURLOverride: ((String) async throws -> (title: String, text: String, url: String))?
-    #endif
-
     /// The client-side backend used for video/parts lookups and for web search
     /// when server-side search is unavailable.
     var clientBackend: SearchBackend? {
-        #if DEBUG
-        if let backendOverride { return backendOverride }
-        #endif
         switch settings.searchBackend {
         case .tinyFish:
             if !settings.tinyFishAPIKey.isBlank {
@@ -284,9 +275,6 @@ final class SearchService {
     /// Fetches and extracts a URL's readable text (used when OpenRouter's
     /// server-side web_fetch tool is not available).
     func readURL(_ urlString: String, maxLength: Int = 12_000) async throws -> (title: String, text: String, url: String) {
-        #if DEBUG
-        if let readURLOverride { return try await readURLOverride(urlString) }
-        #endif
         guard let url = URL(string: urlString.trimmed), url.scheme?.hasPrefix("http") == true else {
             throw SearchError.badResponse("Not a valid http(s) URL.")
         }

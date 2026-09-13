@@ -40,5 +40,8 @@ in Application Support, API keys in the Keychain.
 ## Branches
 
 - `main` — the shipping app.
-- `eval` — the AI evaluation harness (scenario suite, groundedness graders,
-  live model comparison). Kept off `main` so it never ships in the app binary.
+- `eval` — the AI evaluation harness: a dependency-free Python replica of the
+  assistant (same prompt, tools and agent loop) with deterministic graders for
+  hallucinated specs, citations, abstentions, safety advice and tool use.
+  Runs in seconds with no simulator: `python3 eval/run.py --self-test`.
+  See `eval/README.md`. Kept off `main` so it never ships in the app binary.

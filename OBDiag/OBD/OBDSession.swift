@@ -503,53 +503,6 @@ final class OBDSession {
         }
     }
 
-    #if DEBUG
-    /// Loads a scripted vehicle state so evals (and previews) can exercise the
-    /// real pipeline without an adapter.
-    func applyFixture(
-        adapterName: String? = nil,
-        connected: Bool = true,
-        readings fixtureReadings: [SensorKind: Double] = [:],
-        codes: [(code: String, status: DTCStatus)] = [],
-        monitor: MonitorStatus? = nil,
-        vin: String? = nil
-    ) {
-        stopPolling()
-        if connected {
-            mode = .demo
-            connectionState = .connected(adapterName ?? "Fixture Adapter")
-            adapterInfo = AdapterInfo(name: adapterName ?? "Fixture Adapter", protocolName: "ISO 15765-4 (CAN 11/500)")
-
-            var newReadings: [SensorKind: SensorReading] = [:]
-            for (kind, value) in fixtureReadings {
-                newReadings[kind] = SensorReading(kind: kind, value: value, rawValue: nil, timestamp: Date(), isSupported: true)
-            }
-            readings = newReadings
-            supportedKinds = Set(fixtureReadings.keys)
-            supportedPIDs = []
-        } else {
-            mode = .none
-            connectionState = .disconnected
-            readings = [:]
-            supportedKinds = []
-        }
-
-        dtcs = codes
-            .map { DTCKnowledge.makeCode($0.code, status: $0.status) }
-            .sorted { lhs, rhs in
-                if lhs.severity != rhs.severity { return lhs.severity > rhs.severity }
-                return lhs.code < rhs.code
-            }
-        monitorStatus = monitor
-        lastDTCScan = connected ? Date() : nil
-        detectedVIN = vin
-        vinStatus = vin.map { .found($0) } ?? .idle
-        if connected {
-            garage.recordScan(vehicleID: garage.selectedVehicleID, codes: codes.filter { $0.status == .stored }.map(\.code))
-        }
-    }
-    #endif
-
     // MARK: Debug log
 
     func appendLog(_ direction: OBDLogEntry.Direction, _ text: String) {

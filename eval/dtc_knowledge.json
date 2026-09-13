@@ -1,0 +1,1057 @@
+{
+  "B0001": {
+    "causes": [
+      "Clock spring fault",
+      "Seat wiring connector",
+      "Airbag module fault"
+    ],
+    "detail": "Airbag circuit fault \u2014 airbags may not deploy as designed.",
+    "severity": "critical",
+    "title": "Driver frontal stage 1 deploy control"
+  },
+  "B0083": {
+    "causes": [
+      "Failed OCS sensor",
+      "Wiring under the seat",
+      "Calibration lost"
+    ],
+    "detail": "Occupant classification system fault \u2014 the passenger airbag may be suppressed.",
+    "severity": "high",
+    "title": "Passenger seat weight sensor fault"
+  },
+  "C0035": {
+    "causes": [
+      "Failed wheel speed sensor",
+      "Damaged tone ring",
+      "Wiring fault"
+    ],
+    "detail": "The ABS module cannot read the left-front wheel speed.",
+    "severity": "moderate",
+    "title": "Left front wheel speed sensor circuit"
+  },
+  "P0010": {
+    "causes": [
+      "Failed oil control solenoid",
+      "Dirty or degraded engine oil",
+      "Open or shorted wiring"
+    ],
+    "detail": "The intake camshaft oil control solenoid circuit is out of range.",
+    "severity": "moderate",
+    "title": "Camshaft actuator circuit fault, bank 1"
+  },
+  "P0011": {
+    "causes": [
+      "Sludge blocking the phaser oil passages",
+      "Stuck oil control valve",
+      "Stretched timing chain"
+    ],
+    "detail": "The ECU commanded a cam angle that the engine could not achieve \u2014 often called cam phaser rattle.",
+    "severity": "high",
+    "title": "Camshaft timing over-advanced, bank 1"
+  },
+  "P0014": {
+    "causes": [
+      "Faulty exhaust cam phaser",
+      "Low oil pressure",
+      "Wiring fault to the actuator"
+    ],
+    "detail": "Exhaust camshaft timing is outside the commanded range.",
+    "severity": "high",
+    "title": "Camshaft timing over-advanced, bank 1 exhaust"
+  },
+  "P0016": {
+    "causes": [
+      "Stretched or jumped timing chain/belt",
+      "Failed timing chain tensioner",
+      "Worn phaser or keyway"
+    ],
+    "detail": "The relationship between the crank and cam sensors is wrong \u2014 a mechanical timing problem, not a sensor fault.",
+    "severity": "critical",
+    "title": "Crankshaft / camshaft position correlation, bank 1"
+  },
+  "P0017": {
+    "causes": [
+      "Jumped timing chain",
+      "Faulty cam phaser",
+      "Wrong oil viscosity"
+    ],
+    "detail": "Mechanical timing relationship is incorrect on the exhaust camshaft.",
+    "severity": "critical",
+    "title": "Crankshaft / camshaft correlation, bank 1 sensor B"
+  },
+  "P0030": {
+    "causes": [
+      "Failed O\u2082 sensor heater",
+      "Blown heater fuse",
+      "Corroded connector"
+    ],
+    "detail": "The heater circuit for the upstream oxygen sensor is not drawing the expected current.",
+    "severity": "moderate",
+    "title": "O\u2082 heater control circuit, bank 1 sensor 1"
+  },
+  "P0031": {
+    "causes": [
+      "Shorted O\u2082 sensor heater",
+      "Pinched harness shorting to ground"
+    ],
+    "detail": "Heater circuit resistance is too low \u2014 usually the sensor element.",
+    "severity": "moderate",
+    "title": "O\u2082 heater circuit low, bank 1 sensor 1"
+  },
+  "P0032": {
+    "causes": [
+      "Open heater element",
+      "Open wiring",
+      "Bad ground"
+    ],
+    "detail": "Heater circuit is open or drawing too little current.",
+    "severity": "moderate",
+    "title": "O\u2082 heater circuit high, bank 1 sensor 1"
+  },
+  "P0036": {
+    "causes": [
+      "Failed downstream O\u2082 sensor",
+      "Fuse or wiring fault"
+    ],
+    "detail": "Downstream oxygen sensor heater circuit fault.",
+    "severity": "low",
+    "title": "O\u2082 heater control circuit, bank 1 sensor 2"
+  },
+  "P0051": {
+    "causes": [
+      "Failed O\u2082 sensor",
+      "Harness damage"
+    ],
+    "detail": "Upstream oxygen sensor heater circuit fault on bank 2.",
+    "severity": "moderate",
+    "title": "O\u2082 heater circuit, bank 2 sensor 1"
+  },
+  "P0101": {
+    "causes": [
+      "Contaminated MAF sensor element",
+      "Intake leak after the MAF",
+      "K&N-style oiled air filter over-oiling"
+    ],
+    "detail": "The MAF sensor signal does not match what the ECU expects for the operating conditions.",
+    "severity": "moderate",
+    "title": "Mass air flow circuit range/performance"
+  },
+  "P0102": {
+    "causes": [
+      "Failed MAF sensor",
+      "Large intake leak",
+      "Clogged air filter"
+    ],
+    "detail": "Measured airflow is lower than physically plausible.",
+    "severity": "moderate",
+    "title": "Mass air flow circuit low input"
+  },
+  "P0103": {
+    "causes": [
+      "MAF sensor failure",
+      "Wiring short"
+    ],
+    "detail": "Measured airflow is higher than physically plausible.",
+    "severity": "moderate",
+    "title": "Mass air flow circuit high input"
+  },
+  "P0106": {
+    "causes": [
+      "Failed MAP sensor",
+      "Vacuum leak",
+      "Clogged sensor port"
+    ],
+    "detail": "MAP sensor reading does not track expected manifold pressure.",
+    "severity": "moderate",
+    "title": "Manifold absolute pressure circuit range/performance"
+  },
+  "P0107": {
+    "causes": [
+      "Failed MAP sensor",
+      "Open signal wire",
+      "Intake leak"
+    ],
+    "detail": "Manifold pressure signal is below normal range.",
+    "severity": "moderate",
+    "title": "MAP circuit low input"
+  },
+  "P0108": {
+    "causes": [
+      "Sensor failure",
+      "Overboost",
+      "Wiring short to voltage"
+    ],
+    "detail": "Manifold pressure signal is above normal range.",
+    "severity": "moderate",
+    "title": "MAP circuit high input"
+  },
+  "P0113": {
+    "causes": [
+      "Failed IAT sensor",
+      "Open wiring",
+      "Disconnected sensor"
+    ],
+    "detail": "IAT sensor reports an unrealistically cold intake charge \u2014 usually an open circuit.",
+    "severity": "low",
+    "title": "Intake air temperature circuit high input"
+  },
+  "P0117": {
+    "causes": [
+      "Failed ECT sensor",
+      "Low coolant level",
+      "Overheating engine"
+    ],
+    "detail": "Coolant temperature signal is unrealistically high.",
+    "severity": "high",
+    "title": "Engine coolant temperature circuit low input"
+  },
+  "P0118": {
+    "causes": [
+      "Failed ECT sensor",
+      "Open wiring",
+      "Trapped air in the cooling system"
+    ],
+    "detail": "Coolant temperature signal is unrealistically cold \u2014 usually an open circuit.",
+    "severity": "moderate",
+    "title": "Engine coolant temperature circuit high input"
+  },
+  "P0120": {
+    "causes": [
+      "Worn throttle position sensor",
+      "Carbon buildup in the throttle body",
+      "Wiring fault"
+    ],
+    "detail": "The ECU cannot trust the throttle position signal.",
+    "severity": "high",
+    "title": "Throttle position sensor circuit fault"
+  },
+  "P0125": {
+    "causes": [
+      "Stuck-open thermostat",
+      "Failed ECT sensor",
+      "Low coolant"
+    ],
+    "detail": "The engine never reached the temperature needed for fuel control \u2014 a stuck-open thermostat is the usual cause.",
+    "severity": "low",
+    "title": "Insufficient coolant temperature for closed loop"
+  },
+  "P0128": {
+    "causes": [
+      "Stuck-open thermostat",
+      "Failed ECT sensor",
+      "Air pocket in cooling system"
+    ],
+    "detail": "The engine warms up too slowly \u2014 thermostat is stuck open.",
+    "severity": "low",
+    "title": "Coolant thermostat below regulating temperature"
+  },
+  "P0130": {
+    "causes": [
+      "Failed O\u2082 sensor",
+      "Vacuum leak",
+      "Exhaust leak before the sensor"
+    ],
+    "detail": "Upstream oxygen sensor signal is out of range.",
+    "severity": "moderate",
+    "title": "O\u2082 sensor circuit, bank 1 sensor 1"
+  },
+  "P0131": {
+    "causes": [
+      "Lean condition (vacuum leak, low fuel pressure)",
+      "Failed O\u2082 sensor",
+      "Exhaust leak"
+    ],
+    "detail": "Upstream sensor is stuck lean.",
+    "severity": "moderate",
+    "title": "O\u2082 sensor circuit low voltage, bank 1 sensor 1"
+  },
+  "P0133": {
+    "causes": [
+      "Aged O\u2082 sensor",
+      "Exhaust leak",
+      "Contamination from coolant or oil burning"
+    ],
+    "detail": "Upstream oxygen sensor is responding too slowly for closed-loop control.",
+    "severity": "moderate",
+    "title": "O\u2082 sensor slow response, bank 1 sensor 1"
+  },
+  "P0134": {
+    "causes": [
+      "Dead O\u2082 sensor",
+      "Open heater or signal circuit",
+      "Sensor unplugged"
+    ],
+    "detail": "Upstream sensor signal is not changing at all.",
+    "severity": "moderate",
+    "title": "O\u2082 sensor circuit no activity, bank 1 sensor 1"
+  },
+  "P0135": {
+    "causes": [
+      "Failed O\u2082 sensor heater",
+      "Blown fuse",
+      "Wiring fault"
+    ],
+    "detail": "Upstream oxygen sensor heater has failed.",
+    "severity": "low",
+    "title": "O\u2082 heater circuit, bank 1 sensor 1"
+  },
+  "P0137": {
+    "causes": [
+      "Failed downstream O\u2082 sensor",
+      "Exhaust leak",
+      "Converter efficiency issue"
+    ],
+    "detail": "Downstream oxygen sensor is stuck lean.",
+    "severity": "moderate",
+    "title": "O\u2082 sensor circuit low voltage, bank 1 sensor 2"
+  },
+  "P0138": {
+    "causes": [
+      "Failed O\u2082 sensor",
+      "Rich running condition",
+      "Short to voltage"
+    ],
+    "detail": "Downstream oxygen sensor is stuck rich.",
+    "severity": "moderate",
+    "title": "O\u2082 sensor circuit high voltage, bank 1 sensor 2"
+  },
+  "P0141": {
+    "causes": [
+      "Failed O\u2082 sensor heater",
+      "Fuse or wiring"
+    ],
+    "detail": "Downstream oxygen sensor heater fault.",
+    "severity": "low",
+    "title": "O\u2082 heater circuit, bank 1 sensor 2"
+  },
+  "P0151": {
+    "causes": [
+      "Lean condition on bank 2",
+      "Failed O\u2082 sensor",
+      "Exhaust leak"
+    ],
+    "detail": "Bank 2 upstream sensor stuck lean.",
+    "severity": "moderate",
+    "title": "O\u2082 sensor circuit low voltage, bank 2 sensor 1"
+  },
+  "P0153": {
+    "causes": [
+      "Aged O\u2082 sensor",
+      "Contamination",
+      "Exhaust leak"
+    ],
+    "detail": "Bank 2 upstream sensor responds too slowly.",
+    "severity": "moderate",
+    "title": "O\u2082 sensor slow response, bank 2 sensor 1"
+  },
+  "P0171": {
+    "causes": [
+      "Vacuum or intake leak",
+      "Dirty MAF sensor",
+      "Weak fuel pump or clogged filter",
+      "Leaking intake manifold gasket"
+    ],
+    "detail": "The ECU added maximum fuel and still could not reach the target air/fuel ratio. A vacuum leak is the most common cause.",
+    "severity": "moderate",
+    "title": "System too lean, bank 1"
+  },
+  "P0172": {
+    "causes": [
+      "Leaking injector",
+      "High fuel pressure",
+      "Failed MAF sensor",
+      "Stuck-open purge valve"
+    ],
+    "detail": "Fuel delivery is higher than the ECU commands.",
+    "severity": "moderate",
+    "title": "System too rich, bank 1"
+  },
+  "P0174": {
+    "causes": [
+      "Intake gasket leak",
+      "Vacuum leak",
+      "MAF under-reporting"
+    ],
+    "detail": "Bank 2 is running lean \u2014 often a shared intake leak if bank 1 is also affected.",
+    "severity": "moderate",
+    "title": "System too lean, bank 2"
+  },
+  "P0175": {
+    "causes": [
+      "Leaking injector",
+      "High fuel pressure",
+      "MAF sensor fault"
+    ],
+    "detail": "Bank 2 fuel delivery is excessive.",
+    "severity": "moderate",
+    "title": "System too rich, bank 2"
+  },
+  "P0200": {
+    "causes": [
+      "Failed injector",
+      "Open or shorted harness",
+      "ECM driver failure"
+    ],
+    "detail": "One or more fuel injector circuits is not operating correctly.",
+    "severity": "high",
+    "title": "Injector circuit fault"
+  },
+  "P0201": {
+    "causes": [
+      "Failed injector",
+      "Wiring fault"
+    ],
+    "detail": "Cylinder 1 injector circuit is out of range.",
+    "severity": "high",
+    "title": "Injector circuit fault, cylinder 1"
+  },
+  "P0217": {
+    "causes": [
+      "Low coolant",
+      "Failed thermostat",
+      "Failed water pump",
+      "Cooling fan failure"
+    ],
+    "detail": "The engine exceeded its safe operating temperature.",
+    "severity": "critical",
+    "title": "Engine over-temperature condition"
+  },
+  "P0230": {
+    "causes": [
+      "Failed fuel pump relay",
+      "Open wiring to the pump",
+      "Failed fuel pump"
+    ],
+    "detail": "The fuel pump relay or driver circuit is not operating correctly.",
+    "severity": "high",
+    "title": "Fuel pump primary circuit fault"
+  },
+  "P0234": {
+    "causes": [
+      "Stuck wastegate",
+      "Faulty boost control solenoid",
+      "Tuned ECU raising limits"
+    ],
+    "detail": "Boost exceeded the safe limit.",
+    "severity": "high",
+    "title": "Turbo overboost condition"
+  },
+  "P0299": {
+    "causes": [
+      "Boost leak",
+      "Failed turbo",
+      "Stuck wastegate",
+      "Clogged intercooler"
+    ],
+    "detail": "Boost pressure is lower than commanded.",
+    "severity": "moderate",
+    "title": "Turbo underboost"
+  },
+  "P0300": {
+    "causes": [
+      "Worn spark plugs or coils",
+      "Vacuum leak",
+      "Low fuel pressure",
+      "Mechanical engine fault"
+    ],
+    "detail": "Misfires detected across more than one cylinder \u2014 the engine can damage the catalytic converter if driven hard.",
+    "severity": "critical",
+    "title": "Random / multiple cylinder misfire"
+  },
+  "P0301": {
+    "causes": [
+      "Spark plug, coil, or injector",
+      "Valve or compression issue",
+      "Vacuum leak near cylinder 1"
+    ],
+    "detail": "Repeated misfires in cylinder 1.",
+    "severity": "high",
+    "title": "Cylinder 1 misfire"
+  },
+  "P0302": {
+    "causes": [
+      "Ignition component",
+      "Injector fault",
+      "Mechanical issue"
+    ],
+    "detail": "Repeated misfires in cylinder 2.",
+    "severity": "high",
+    "title": "Cylinder 2 misfire"
+  },
+  "P0303": {
+    "causes": [
+      "Ignition component",
+      "Injector fault",
+      "Mechanical issue"
+    ],
+    "detail": "Repeated misfires in cylinder 3.",
+    "severity": "high",
+    "title": "Cylinder 3 misfire"
+  },
+  "P0304": {
+    "causes": [
+      "Ignition component",
+      "Injector fault",
+      "Mechanical issue"
+    ],
+    "detail": "Repeated misfires in cylinder 4.",
+    "severity": "high",
+    "title": "Cylinder 4 misfire"
+  },
+  "P0305": {
+    "causes": [
+      "Ignition component",
+      "Injector fault",
+      "Mechanical issue"
+    ],
+    "detail": "Repeated misfires in cylinder 5.",
+    "severity": "high",
+    "title": "Cylinder 5 misfire"
+  },
+  "P0306": {
+    "causes": [
+      "Ignition component",
+      "Injector fault",
+      "Mechanical issue"
+    ],
+    "detail": "Repeated misfires in cylinder 6.",
+    "severity": "high",
+    "title": "Cylinder 6 misfire"
+  },
+  "P0307": {
+    "causes": [
+      "Ignition component",
+      "Injector fault",
+      "Mechanical issue"
+    ],
+    "detail": "Repeated misfires in cylinder 7.",
+    "severity": "high",
+    "title": "Cylinder 7 misfire"
+  },
+  "P0308": {
+    "causes": [
+      "Ignition component",
+      "Injector fault",
+      "Mechanical issue"
+    ],
+    "detail": "Repeated misfires in cylinder 8.",
+    "severity": "high",
+    "title": "Cylinder 8 misfire"
+  },
+  "P0316": {
+    "causes": [
+      "Coolant or oil leaking into a cylinder",
+      "Weak ignition at cold start",
+      "Low fuel pressure"
+    ],
+    "detail": "Misfires occur in the first 1000 revolutions after start.",
+    "severity": "high",
+    "title": "Misfire detected at start-up"
+  },
+  "P0325": {
+    "causes": [
+      "Failed knock sensor",
+      "Wiring fault",
+      "Loose sensor"
+    ],
+    "detail": "The knock sensor signal is missing or out of range.",
+    "severity": "moderate",
+    "title": "Knock sensor circuit fault, bank 1"
+  },
+  "P0335": {
+    "causes": [
+      "Failed crank sensor",
+      "Damaged reluctor wheel",
+      "Wiring/connector fault"
+    ],
+    "detail": "The ECU has lost the crankshaft signal \u2014 the engine may stall or not start.",
+    "severity": "critical",
+    "title": "Crankshaft position sensor circuit fault"
+  },
+  "P0340": {
+    "causes": [
+      "Failed cam sensor",
+      "Wiring fault",
+      "Timing chain stretch"
+    ],
+    "detail": "The ECU cannot read the intake camshaft position.",
+    "severity": "high",
+    "title": "Camshaft position sensor circuit fault, bank 1"
+  },
+  "P0345": {
+    "causes": [
+      "Failed cam sensor",
+      "Wiring",
+      "Mechanical timing"
+    ],
+    "detail": "Bank 2 camshaft position signal is missing.",
+    "severity": "high",
+    "title": "Camshaft position sensor circuit fault, bank 2"
+  },
+  "P0351": {
+    "causes": [
+      "Failed coil",
+      "Wiring fault",
+      "ECM driver issue"
+    ],
+    "detail": "The ECU cannot drive ignition coil A.",
+    "severity": "high",
+    "title": "Ignition coil A primary/secondary circuit"
+  },
+  "P0352": {
+    "causes": [
+      "Failed coil",
+      "Wiring fault"
+    ],
+    "detail": "Ignition coil B circuit fault.",
+    "severity": "high",
+    "title": "Ignition coil B primary/secondary circuit"
+  },
+  "P0401": {
+    "causes": [
+      "Clogged EGR passages",
+      "Failed EGR valve",
+      "Faulty DPFE sensor"
+    ],
+    "detail": "Commanded EGR flow is not being detected.",
+    "severity": "moderate",
+    "title": "EGR flow insufficient"
+  },
+  "P0403": {
+    "causes": [
+      "Failed EGR solenoid",
+      "Wiring fault"
+    ],
+    "detail": "The EGR valve control circuit is not operating correctly.",
+    "severity": "moderate",
+    "title": "EGR control circuit fault"
+  },
+  "P0411": {
+    "causes": [
+      "Failed air pump",
+      "Leaking check valve",
+      "Clogged passages"
+    ],
+    "detail": "Air injection system is not delivering the expected flow.",
+    "severity": "moderate",
+    "title": "Secondary air injection incorrect flow"
+  },
+  "P0420": {
+    "causes": [
+      "Worn-out catalytic converter",
+      "Faulty downstream O\u2082 sensor",
+      "Exhaust leak before the converter",
+      "Engine misfire or rich running damaging the cat"
+    ],
+    "detail": "The downstream O\u2082 sensor follows the upstream one too closely, meaning the converter is not storing oxygen as it should.",
+    "severity": "moderate",
+    "title": "Catalyst efficiency below threshold, bank 1"
+  },
+  "P0430": {
+    "causes": [
+      "Worn catalytic converter",
+      "O\u2082 sensor fault",
+      "Exhaust leak"
+    ],
+    "detail": "Bank 2 converter is below efficiency threshold.",
+    "severity": "moderate",
+    "title": "Catalyst efficiency below threshold, bank 2"
+  },
+  "P0440": {
+    "causes": [
+      "Loose or faulty gas cap",
+      "Leaking EVAP hose",
+      "Faulty purge or vent valve"
+    ],
+    "detail": "The EVAP system failed its self-test.",
+    "severity": "low",
+    "title": "Evaporative emission system fault"
+  },
+  "P0442": {
+    "causes": [
+      "Gas cap seal",
+      "Small hose crack",
+      "Vent valve seep"
+    ],
+    "detail": "A small leak was detected in the EVAP system.",
+    "severity": "low",
+    "title": "Evaporative emission system small leak"
+  },
+  "P0443": {
+    "causes": [
+      "Failed purge valve",
+      "Wiring fault"
+    ],
+    "detail": "Purge solenoid circuit fault.",
+    "severity": "low",
+    "title": "EVAP purge control valve circuit"
+  },
+  "P0455": {
+    "causes": [
+      "Loose or missing gas cap",
+      "Disconnected EVAP hose",
+      "Failed purge/vent valve"
+    ],
+    "detail": "A large leak \u2014 often simply a loose fuel cap \u2014 was detected.",
+    "severity": "low",
+    "title": "Evaporative emission system large leak"
+  },
+  "P0456": {
+    "causes": [
+      "Gas cap O-ring",
+      "Small hose seep",
+      "Vent valve"
+    ],
+    "detail": "A very small EVAP leak was detected.",
+    "severity": "low",
+    "title": "Evaporative emission system very small leak"
+  },
+  "P0457": {
+    "causes": [
+      "Reseat or replace the fuel cap",
+      "Clear the code and re-check after two drive cycles"
+    ],
+    "detail": "The system detected the fuel cap is not sealing.",
+    "severity": "low",
+    "title": "EVAP system leak detected (fuel cap loose/off)"
+  },
+  "P0500": {
+    "causes": [
+      "Failed VSS",
+      "Wiring fault",
+      "ABS module issue feeding the signal"
+    ],
+    "detail": "The ECU is not receiving a valid vehicle speed signal.",
+    "severity": "moderate",
+    "title": "Vehicle speed sensor fault"
+  },
+  "P0505": {
+    "causes": [
+      "Carbon in the throttle body",
+      "Failed idle air control valve",
+      "Vacuum leak"
+    ],
+    "detail": "The engine cannot maintain target idle speed.",
+    "severity": "moderate",
+    "title": "Idle control system fault"
+  },
+  "P0506": {
+    "causes": [
+      "Carbon buildup",
+      "IAC valve fault",
+      "Vacuum leak"
+    ],
+    "detail": "Idle RPM is below the target range.",
+    "severity": "moderate",
+    "title": "Idle speed lower than expected"
+  },
+  "P0507": {
+    "causes": [
+      "Vacuum leak",
+      "Throttle body calibration",
+      "IAC valve"
+    ],
+    "detail": "Idle RPM is above the target range.",
+    "severity": "moderate",
+    "title": "Idle speed higher than expected"
+  },
+  "P0521": {
+    "causes": [
+      "Failed oil pressure sensor",
+      "Low oil level",
+      "Worn oil pump or bearings"
+    ],
+    "detail": "Oil pressure signal is inconsistent with engine operation.",
+    "severity": "high",
+    "title": "Engine oil pressure sensor range/performance"
+  },
+  "P0562": {
+    "causes": [
+      "Failing alternator",
+      "Loose or corroded battery terminals",
+      "Worn serpentine belt"
+    ],
+    "detail": "Charging system voltage is below the normal range while running.",
+    "severity": "moderate",
+    "title": "System voltage low"
+  },
+  "P0563": {
+    "causes": [
+      "Failed voltage regulator/alternator",
+      "Wiring fault"
+    ],
+    "detail": "Charging voltage is above the safe range.",
+    "severity": "moderate",
+    "title": "System voltage high"
+  },
+  "P0571": {
+    "causes": [
+      "Failed brake light switch",
+      "Misadjusted switch",
+      "Wiring fault"
+    ],
+    "detail": "The ECU cannot confirm brake pedal position \u2014 cruise control may be disabled.",
+    "severity": "moderate",
+    "title": "Brake switch circuit fault"
+  },
+  "P0601": {
+    "causes": [
+      "Failed ECU",
+      "Voltage spike",
+      "Water intrusion"
+    ],
+    "detail": "The ECU's internal memory failed a self-check.",
+    "severity": "high",
+    "title": "Internal control module memory checksum error"
+  },
+  "P0606": {
+    "causes": [
+      "Failing PCM",
+      "Power/ground issue",
+      "Low voltage event"
+    ],
+    "detail": "The powertrain control module reported an internal processor fault.",
+    "severity": "high",
+    "title": "PCM processor fault"
+  },
+  "P0620": {
+    "causes": [
+      "Failed alternator",
+      "Wiring fault",
+      "PCM driver"
+    ],
+    "detail": "The PCM cannot control charging as expected.",
+    "severity": "high",
+    "title": "Generator control circuit fault"
+  },
+  "P0700": {
+    "causes": [
+      "See the TCM-specific codes",
+      "Low fluid",
+      "Solenoid fault"
+    ],
+    "detail": "The transmission control module is reporting a fault \u2014 this is an informational code pointing to the TCM.",
+    "severity": "high",
+    "title": "Transmission control system fault"
+  },
+  "P0705": {
+    "causes": [
+      "Failed range sensor",
+      "Wiring fault",
+      "Shifter linkage misalignment"
+    ],
+    "detail": "Gear selector position cannot be determined reliably.",
+    "severity": "high",
+    "title": "Transmission range sensor circuit fault"
+  },
+  "P0715": {
+    "causes": [
+      "Failed speed sensor",
+      "Wiring fault",
+      "Internal transmission issue"
+    ],
+    "detail": "The transmission cannot read input shaft speed.",
+    "severity": "high",
+    "title": "Input/turbine speed sensor circuit fault"
+  },
+  "P0730": {
+    "causes": [
+      "Low transmission fluid",
+      "Worn clutches",
+      "Failed shift solenoid",
+      "Valve body issue"
+    ],
+    "detail": "Measured input/output speed ratio does not match the commanded gear \u2014 slipping or solenoid fault.",
+    "severity": "high",
+    "title": "Incorrect gear ratio"
+  },
+  "P0740": {
+    "causes": [
+      "Failed TCC solenoid",
+      "Wiring fault",
+      "Valve body issue"
+    ],
+    "detail": "The TCC solenoid circuit is not operating correctly.",
+    "severity": "high",
+    "title": "Torque converter clutch circuit fault"
+  },
+  "P0741": {
+    "causes": [
+      "Worn converter clutch",
+      "Solenoid fault",
+      "Valve body wear"
+    ],
+    "detail": "The TCC is not engaging when commanded \u2014 fuel economy and heat suffer.",
+    "severity": "high",
+    "title": "Torque converter clutch stuck off"
+  },
+  "P0750": {
+    "causes": [
+      "Failed solenoid",
+      "Wiring fault",
+      "Valve body contamination"
+    ],
+    "detail": "Shift solenoid A circuit fault.",
+    "severity": "high",
+    "title": "Shift solenoid A fault"
+  },
+  "P0755": {
+    "causes": [
+      "Failed solenoid",
+      "Wiring fault"
+    ],
+    "detail": "Shift solenoid B circuit fault.",
+    "severity": "high",
+    "title": "Shift solenoid B fault"
+  },
+  "P0780": {
+    "causes": [
+      "Solenoid or valve body fault",
+      "Low fluid",
+      "Internal wear"
+    ],
+    "detail": "The transmission could not complete a commanded shift.",
+    "severity": "high",
+    "title": "Shift error detected"
+  },
+  "P1000": {
+    "causes": [
+      "Codes recently cleared",
+      "Battery disconnected"
+    ],
+    "detail": "The ECU has not finished its self-tests since the codes were cleared.",
+    "severity": "info",
+    "title": "OBD readiness test not complete"
+  },
+  "P1133": {
+    "causes": [
+      "Aged O\u2082 sensor",
+      "Exhaust leak",
+      "Fuel trim issue"
+    ],
+    "detail": "Manufacturer-specific oxygen sensor performance fault.",
+    "severity": "moderate",
+    "title": "O\u2082 sensor insufficient switching, bank 1 sensor 1"
+  },
+  "P1345": {
+    "causes": [
+      "Jumped timing chain",
+      "Distributor/phaser misalignment",
+      "Sensor fault"
+    ],
+    "detail": "Timing relationship between camshaft and crankshaft is out of spec.",
+    "severity": "critical",
+    "title": "Cam/crank correlation fault (manufacturer-specific)"
+  },
+  "P1450": {
+    "causes": [
+      "Stuck EVAP valve",
+      "Blocked hose",
+      "Fuel tank pressure sensor"
+    ],
+    "detail": "Manufacturer-specific EVAP fault \u2014 commonly a stuck purge or vent valve.",
+    "severity": "low",
+    "title": "EVAP system unable to bleed vacuum"
+  },
+  "P2002": {
+    "causes": [
+      "Cracked DPF",
+      "Failed pressure sensor",
+      "Excessive soot from rich running"
+    ],
+    "detail": "DPF is not trapping soot as expected.",
+    "severity": "moderate",
+    "title": "Diesel particulate filter efficiency below threshold"
+  },
+  "P2101": {
+    "causes": [
+      "Carbon buildup in throttle body",
+      "Failed throttle actuator",
+      "Wiring fault"
+    ],
+    "detail": "The electronic throttle did not reach the commanded position.",
+    "severity": "high",
+    "title": "Throttle actuator control range/performance"
+  },
+  "P2135": {
+    "causes": [
+      "Failed throttle body",
+      "Wiring fault",
+      "Connector corrosion"
+    ],
+    "detail": "The two throttle position signals do not match.",
+    "severity": "high",
+    "title": "Throttle position sensors disagree"
+  },
+  "P2181": {
+    "causes": [
+      "Stuck thermostat",
+      "Air pocket",
+      "Radiator restriction",
+      "Fan fault"
+    ],
+    "detail": "The engine is not maintaining expected coolant temperature under load.",
+    "severity": "moderate",
+    "title": "Cooling system performance"
+  },
+  "P2463": {
+    "causes": [
+      "Short trips preventing regeneration",
+      "Failed EGR",
+      "Faulty sensor"
+    ],
+    "detail": "The DPF is loaded with soot and needs regeneration.",
+    "severity": "moderate",
+    "title": "Diesel particulate filter soot accumulation"
+  },
+  "U0100": {
+    "causes": [
+      "ECM power or ground fault",
+      "CAN bus wiring fault",
+      "Failed ECM"
+    ],
+    "detail": "Other modules cannot see the engine control module on the network.",
+    "severity": "critical",
+    "title": "Lost communication with ECM/PCM"
+  },
+  "U0101": {
+    "causes": [
+      "TCM power/ground",
+      "CAN wiring",
+      "Failed TCM"
+    ],
+    "detail": "The transmission control module dropped off the network.",
+    "severity": "high",
+    "title": "Lost communication with TCM"
+  },
+  "U0121": {
+    "causes": [
+      "ABS module power/ground fault",
+      "CAN wiring",
+      "Failed ABS module"
+    ],
+    "detail": "The ABS module is not responding on the network.",
+    "severity": "high",
+    "title": "Lost communication with ABS module"
+  },
+  "U0140": {
+    "causes": [
+      "BCM power/ground",
+      "CAN wiring",
+      "Failed BCM"
+    ],
+    "detail": "The BCM stopped responding on the network.",
+    "severity": "high",
+    "title": "Lost communication with body control module"
+  },
+  "U0155": {
+    "causes": [
+      "Cluster power/ground",
+      "CAN wiring",
+      "Failed cluster"
+    ],
+    "detail": "The cluster dropped off the network.",
+    "severity": "moderate",
+    "title": "Lost communication with instrument cluster"
+  }
+}
