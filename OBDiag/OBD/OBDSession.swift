@@ -302,6 +302,33 @@ final class OBDSession {
         appendLog(.info, "Supported sensors: \(supportedKinds.count)")
     }
 
+    // MARK: Polling suspension
+
+    private var pollingSuspendDepth = 0
+    private var wasPollingBeforeSuspend = false
+
+    /// Suspends the live-data poll so a control operation (code read/clear, VIN)
+    /// has the adapter to itself. Nestable, so `clearDTCs` can call
+    /// `refreshDTCs` without restarting polling mid-sequence. Polling is only
+    /// restarted if it was running when the first suspension happened — during
+    /// session startup it has not begun yet.
+    private func suspendPolling() {
+        pollingSuspendDepth += 1
+        if pollingSuspendDepth == 1 {
+            wasPollingBeforeSuspend = isPolling
+            if isPolling { stopPolling() }
+        }
+    }
+
+    private func resumePollingIfSuspended() {
+        guard pollingSuspendDepth > 0 else { return }
+        pollingSuspendDepth -= 1
+        if pollingSuspendDepth == 0, wasPollingBeforeSuspend, connection != nil {
+            wasPollingBeforeSuspend = false
+            startPolling()
+        }
+    }
+
     // MARK: Polling
 
     func startPolling() {
@@ -316,6 +343,7 @@ final class OBDSession {
         pollTask?.cancel()
         pollTask = nil
         isPolling = false
+        if pollingSuspendDepth == 0 { wasPollingBeforeSuspend = false }
     }
 
     private func pollLoop() async {
@@ -378,6 +406,8 @@ final class OBDSession {
 
     func refreshDTCs() async {
         guard let connection else { return }
+        suspendPolling()
+        defer { resumePollingIfSuspended() }
         isScanningDTCs = true
         defer { isScanningDTCs = false }
 
@@ -409,25 +439,44 @@ final class OBDSession {
 
     func clearDTCs() async -> Bool {
         guard let connection else { return false }
+        suspendPolling()
+        defer { resumePollingIfSuspended() }
         isClearingDTCs = true
         defer { isClearingDTCs = false }
         appendLog(.info, "Clearing fault codes…")
-        do {
-            let response = try await connection.query("04", timeout: 6)
-            let acknowledged = response.allHexBytes.contains(0x44)
-            guard acknowledged else {
-                lastError = "The vehicle did not acknowledge the clear request."
-                return false
+
+        var lastAnswer = ""
+        for attempt in 1...2 {
+            do {
+                // Clearing can take a while on some ECUs.
+                let response = try await connection.query("04", timeout: 15)
+                lastAnswer = response.rawText.trimmed
+                if response.allHexBytes.contains(0x44) {
+                    garage.recordCodesCleared(vehicleID: garage.selectedVehicleID)
+                    // The ECU is busy re-initialising monitors for a moment.
+                    try? await Task.sleep(nanoseconds: 700_000_000)
+                    await refreshDTCs()
+                    appendLog(.info, "Clear acknowledged; \(storedCodes.count) stored code(s) remain")
+                    Haptics.success()
+                    return true
+                }
+                appendLog(.info, "Clear attempt \(attempt) answered: \(lastAnswer.truncated(to: 80))")
+            } catch {
+                lastAnswer = error.localizedDescription
+                appendLog(.error, "Clear attempt \(attempt) failed: \(error.localizedDescription)")
             }
-            garage.recordCodesCleared(vehicleID: garage.selectedVehicleID)
-            await refreshDTCs()
-            Haptics.success()
-            return true
-        } catch {
-            lastError = error.localizedDescription
-            appendLog(.error, error.localizedDescription)
-            return false
+
+            if attempt == 1 {
+                // Adapters sometimes lose bus state after a long polling
+                // session; re-select the protocol and try once more.
+                _ = try? await connection.query("ATSP0", timeout: 3)
+                try? await Task.sleep(nanoseconds: 300_000_000)
+            }
         }
+
+        lastError = "The vehicle did not acknowledge the clear request. Turn the ignition to ON (engine off) and try again."
+            + (lastAnswer.isEmpty ? "" : " Adapter said: \(lastAnswer.truncated(to: 80))")
+        return false
     }
 
     // MARK: Monitor status
@@ -445,38 +494,34 @@ final class OBDSession {
     func readVIN(force: Bool = false) async -> String? {
         if !force, let detectedVIN, !detectedVIN.isBlank { return detectedVIN }
         guard let connection else { return nil }
+        suspendPolling()
+        defer { resumePollingIfSuspended() }
         vinStatus = .reading
         appendLog(.info, "Requesting VIN (mode 09 PID 02)…")
-        do {
-            let response = try await connection.query("0902", timeout: 7)
-            if let vin = Self.parseVIN(response) {
-                detectedVIN = vin
-                vinStatus = .found(vin)
-                appendLog(.info, "VIN reported: \(vin)")
-                return vin
+
+        for attempt in 1...2 {
+            // Wake the bus first: some ECUs ignore 09 02 on a sleeping network.
+            _ = try? await connection.query("0100", timeout: 3)
+            do {
+                let response = try await connection.query("0902", timeout: 12)
+                if let vin = VINParser.extract(from: response) {
+                    detectedVIN = vin
+                    vinStatus = .found(vin)
+                    appendLog(.info, "VIN reported: \(vin)")
+                    return vin
+                }
+                appendLog(.info, "VIN attempt \(attempt) returned: \(response.rawText.replacingOccurrences(of: "\n", with: " ").truncated(to: 100))")
+            } catch {
+                appendLog(.error, "VIN attempt \(attempt) failed: \(error.localizedDescription)")
             }
-            vinStatus = .notAvailable
-            return nil
-        } catch {
-            vinStatus = .failed(error.localizedDescription)
-            return nil
         }
+
+        vinStatus = .notAvailable
+        return nil
     }
 
     static func parseVIN(_ response: OBDResponse) -> String? {
-        let bytes = response.allHexBytes
-        guard let start = bytes.firstIndex(of: 0x49), bytes.count > start + 2, bytes[start + 1] == 0x02 else {
-            return nil
-        }
-        var payload = Array(bytes[(start + 2)...])
-        // Some ECUs prefix each frame with an item/frame number.
-        while let first = payload.first, first < 0x20 { payload.removeFirst() }
-        let text = payload
-            .filter { $0 >= 0x20 && $0 < 0x7F }
-            .map { Character(UnicodeScalar($0)) }
-            .filter { $0.isLetter || $0.isNumber }
-        let vin = String(text.prefix(17)).uppercased()
-        return Vehicle.isPlausibleVIN(vin) ? vin : nil
+        VINParser.extract(from: response)
     }
 
     var vinMismatchMessage: String? {
