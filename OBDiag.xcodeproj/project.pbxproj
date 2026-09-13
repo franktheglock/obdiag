@@ -61,6 +61,7 @@
 		C34A45E197B782D77630D05F /* ToolRegistry.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD793AD9E7439A9B87580C61 /* ToolRegistry.swift */; };
 		C5A514F8509E8582E900EF30 /* AppSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = F8C88724ABE6EB7A523ED04D /* AppSettings.swift */; };
 		CA49B570A43A3AE903953810 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C8575F6A79ED191E057B042E /* SettingsView.swift */; };
+		CB2AB1CCF087761085FA2499 /* DTCCodec.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4D7B117DA2CB71E2FD7419CB /* DTCCodec.swift */; };
 		CD34646882FA6861E580E059 /* DTCKnowledge.swift in Sources */ = {isa = PBXBuildFile; fileRef = B228B3CE15E167416ACE75F8 /* DTCKnowledge.swift */; };
 		CE5ECC932C354CDD6FFC1810 /* RealOBDConnection.swift in Sources */ = {isa = PBXBuildFile; fileRef = 201FDF4E1A7983B5DC2905E5 /* RealOBDConnection.swift */; };
 		D1C7F89CD410AFAE60B9821B /* SearchModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = BC7330376F14685F515F60CA /* SearchModels.swift */; };
@@ -104,6 +105,7 @@
 		479F2BC7C250EBBE0136BA12 /* AddVehicleFlow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AddVehicleFlow.swift; sourceTree = "<group>"; };
 		4A0796971C2150860F240CF5 /* AIModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AIModel.swift; sourceTree = "<group>"; };
 		4CD89EA196A9786A409528F8 /* Units.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Units.swift; sourceTree = "<group>"; };
+		4D7B117DA2CB71E2FD7419CB /* DTCCodec.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DTCCodec.swift; sourceTree = "<group>"; };
 		5006BD00DEE8002B2E77975D /* FileStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FileStore.swift; sourceTree = "<group>"; };
 		51AE3067BFF9C7E2EC03109A /* OnboardingFlow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingFlow.swift; sourceTree = "<group>"; };
 		5580F23F1F76DF28092EC93C /* GarageStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GarageStore.swift; sourceTree = "<group>"; };
@@ -299,6 +301,7 @@
 			children = (
 				D73999BEBE7855D28E7D1A1C /* BLEOBDTransport.swift */,
 				1847AF32E8DCE9AE8884622A /* DemoOBDConnection.swift */,
+				4D7B117DA2CB71E2FD7419CB /* DTCCodec.swift */,
 				B228B3CE15E167416ACE75F8 /* DTCKnowledge.swift */,
 				DF2753CE61F29F153F8C5ED6 /* ELM327Client.swift */,
 				CB7B5AE3B9E5822EE4845464 /* OBDSession.swift */,
@@ -540,6 +543,7 @@
 				460CFA35754168BA23E15947 /* Conversation.swift in Sources */,
 				78F557EBCD9ED5032C5C57EB /* ConversationStore.swift in Sources */,
 				3E50938816DB2C0DFFEF62A6 /* CreditLedger.swift in Sources */,
+				CB2AB1CCF087761085FA2499 /* DTCCodec.swift in Sources */,
 				CD34646882FA6861E580E059 /* DTCKnowledge.swift in Sources */,
 				839D037883CA54C0859374CE /* DTCSection.swift in Sources */,
 				7EE71C0CF55B1146B6630423 /* DebugLogView.swift in Sources */,
