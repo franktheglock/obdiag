@@ -7,3 +7,4 @@ xcuserdata/
 
 # Eval secrets and reports (see the `eval` branch)
 .eval/
+__pycache__/
