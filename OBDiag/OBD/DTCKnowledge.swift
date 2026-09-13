@@ -34,30 +34,9 @@ enum DTCKnowledge {
     }
 
     /// Parses DTC payloads from mode 03 (stored), 07 (pending) or 0A (permanent).
-    /// SAE J2012 layout: byte 1 = system (bits 7-6), second character (bits 5-4),
-    /// third character (bits 3-0); byte 2 = fourth and fifth characters.
+    /// The wire format lives in `DTCCodec` so it can be tested without a simulator.
     static func codes(fromPayload bytes: [UInt8]) -> [String] {
-        var codes: [String] = []
-        var index = 0
-        while index + 1 < bytes.count {
-            let first = bytes[index]
-            let second = bytes[index + 1]
-            index += 2
-            guard first != 0 || second != 0 else { continue }
-            let system: String
-            switch first >> 6 {
-            case 0: system = "P"
-            case 1: system = "C"
-            case 2: system = "B"
-            case 3: system = "U"
-            default: continue
-            }
-            let secondCharacter = (first >> 4) & 0x03
-            let thirdCharacter = first & 0x0F
-            let code = String(format: "%@%X%X%02X", system, secondCharacter, thirdCharacter, second)
-            codes.append(code)
-        }
-        return codes
+        DTCCodec.codes(fromPayload: bytes)
     }
 
     /// Family description for codes not in the database.

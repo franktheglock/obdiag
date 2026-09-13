@@ -362,27 +362,7 @@ struct DemoVehicleSimulator {
     }
 
     static func encode(_ codes: [String]) -> [UInt8] {
-        var bytes: [UInt8] = []
-        for code in codes {
-            let upper = code.uppercased()
-            guard upper.count == 5 else { continue }
-            let systemBits: UInt8
-            switch upper.first {
-            case "P": systemBits = 0
-            case "C": systemBits = 1
-            case "B": systemBits = 2
-            case "U": systemBits = 3
-            default: continue
-            }
-            let chars = Array(upper)
-            guard let secondCharacter = UInt8(String(chars[1]), radix: 16),
-                  let thirdCharacter = UInt8(String(chars[2]), radix: 16),
-                  let rest = UInt8(String(chars[3...4]), radix: 16) else { continue }
-            bytes.append((systemBits << 6) | ((secondCharacter & 0x03) << 4) | (thirdCharacter & 0x0F))
-            bytes.append(rest)
-        }
-        while bytes.count < 6 { bytes.append(0) }
-        return bytes
+        DTCCodec.encode(codes)
     }
 
     mutating func setScenario(_ scenario: DemoOBDConnection.Scenario) {
