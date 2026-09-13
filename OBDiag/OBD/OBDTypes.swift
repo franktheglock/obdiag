@@ -160,11 +160,15 @@ struct OBDResponse: Sendable {
 
         for rawToken in tokens {
             var token = rawToken
-            // ISO-TP frame index, e.g. "0:" or "1:".
-            if token.hasSuffix(":") {
-                token = token.dropLast()
-                if token.isEmpty { continue }
+            // ISO-TP frame index, either separated ("0: 49 02 …") or glued to
+            // the payload when spaces are off ("0:490201334336").
+            if let colon = token.firstIndex(of: ":") {
+                let prefix = token[token.startIndex..<colon]
+                if !prefix.isEmpty, prefix.allSatisfy(\.isNumber) {
+                    token = token[token.index(after: colon)...]
+                }
             }
+            if token.isEmpty { continue }
             guard token.allSatisfy({ $0.isHexDigit }) else { return nil }
             sawHex = true
             // Odd-length token is a length/PCI byte pair, e.g. "014" → 01 04.
@@ -247,7 +251,13 @@ protocol OBDConnection: AnyObject {
     func connect() async throws
     func disconnect()
     func query(_ command: String, timeout: TimeInterval) async throws -> OBDResponse
+    /// Drops any half-received response and resynchronises the adapter.
+    func resync()
     var onDisconnect: ((Error?) -> Void)? { get set }
+}
+
+extension OBDConnection {
+    func resync() {}
 }
 
 /// A raw byte pipe to an adapter. The BLE transport implements this; tests and

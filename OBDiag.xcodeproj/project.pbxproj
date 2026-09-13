@@ -105,7 +105,7 @@
 		0405ECDC22AF20135695FA5E /* Formatters.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Formatters.swift; sourceTree = "<group>"; };
 		0AA04640A5F5ECC28E252DB6 /* Keychain.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Keychain.swift; sourceTree = "<group>"; };
 		0D6C1984774B1C62F6F158A5 /* SensorsGrid.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SensorsGrid.swift; sourceTree = "<group>"; };
-		0F77521C6BC8C14B2E3601FD /* OBDiag.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = OBDiag.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		0F77521C6BC8C14B2E3601FD /* OBDiag.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = OBDiag.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		1847AF32E8DCE9AE8884622A /* DemoOBDConnection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DemoOBDConnection.swift; sourceTree = "<group>"; };
 		1946C0F8F69B00630402C2DA /* PromptBuilder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PromptBuilder.swift; sourceTree = "<group>"; };
 		1A0EDD6DB98CFF72A998B6DE /* Haptics.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Haptics.swift; sourceTree = "<group>"; };
@@ -517,7 +517,6 @@
 						TestTargetID = 5AC8BAC09C9D5C5CCEF15468;
 					};
 					5AC8BAC09C9D5C5CCEF15468 = {
-						DevelopmentTeam = "";
 						ProvisioningStyle = Automatic;
 					};
 					69B174A970A619090F45F766 = {
@@ -742,6 +741,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = GS367542MP;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INCLUDE_ONLY_APPLE_FRAMEWORKS = YES;
@@ -882,6 +882,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = GS367542MP;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INCLUDE_ONLY_APPLE_FRAMEWORKS = YES;

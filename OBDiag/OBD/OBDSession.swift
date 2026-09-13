@@ -70,6 +70,7 @@ final class OBDSession {
     private var demoConnection: DemoOBDConnection?
     private var pollTask: Task<Void, Never>?
     private var misses: [SensorKind: Int] = [:]
+    private var consecutiveTimeouts = 0
     private var lastBoost: Double?
 
     init(settings: AppSettings, garage: GarageStore) {
@@ -231,6 +232,7 @@ final class OBDSession {
         stopPolling()
         connection = nil
         mode = .none
+        consecutiveTimeouts = 0
         if let error {
             lastError = "Adapter disconnected: \(error.localizedDescription)"
             connectionState = .failed("Adapter disconnected")
@@ -362,7 +364,26 @@ final class OBDSession {
     private func poll(kind: SensorKind, connection: OBDConnection) async {
         guard let command = SensorCatalog.command(for: kind) else { return }
         let commandString = String(format: "01%02X", command.pid)
-        guard let response = try? await connection.query(commandString, timeout: 1.5) else { return }
+
+        let response: OBDResponse
+        do {
+            response = try await connection.query(commandString, timeout: 1.0)
+            consecutiveTimeouts = 0
+        } catch {
+            // A missing prompt usually means a slow or unsupported PID, or the
+            // adapter went away. Count it as a miss (three strikes removes the
+            // sensor) and resync so a late reply cannot be read as the answer
+            // to the next command.
+            consecutiveTimeouts += 1
+            registerMiss(kind)
+            connection.resync()
+            if consecutiveTimeouts >= 3 {
+                consecutiveTimeouts = 0
+                await recoverBus(on: connection)
+            }
+            return
+        }
+
         let payload = response.payload(mode: 0x01, pid: command.pid)
         guard !response.isNoData, let value = command.decode(payload) else {
             registerMiss(kind)
@@ -373,6 +394,16 @@ final class OBDSession {
         if kind == .manifoldAbsolutePressure || kind == .barometricPressure {
             updateBoost()
         }
+    }
+
+    /// The adapter stopped answering entirely. Close the protocol, re-select
+    /// auto and prod the bus so the next poll starts from a known state.
+    private func recoverBus(on connection: OBDConnection) async {
+        appendLog(.info, "Adapter stopped answering — recovering the bus…")
+        _ = try? await connection.query("ATPC", timeout: 2)
+        _ = try? await connection.query("ATSP0", timeout: 3)
+        _ = try? await connection.query("AT", timeout: 2)
+        await discoverSupportedPIDs()
     }
 
     private func registerMiss(_ kind: SensorKind) {

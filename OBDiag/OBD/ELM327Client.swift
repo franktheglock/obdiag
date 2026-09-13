@@ -44,6 +44,16 @@ final class ELM327Client {
         }
     }
 
+    /// Clears any half-received response and nudges the adapter back to a
+    /// prompt. A timed-out request can leave the adapter mid-message, and the
+    /// late reply would otherwise be attributed to the next command.
+    func resync() {
+        pendingText = ""
+        activeBuffer = []
+        transport.send("\r")
+        log(.info, "resync")
+    }
+
     /// Fire-and-forget AT command; used for tidy-up during disconnect.
     func sendWithoutWaiting(_ command: String) {
         transport.send(command + "\r")

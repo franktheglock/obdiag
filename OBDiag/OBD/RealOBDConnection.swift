@@ -53,6 +53,10 @@ final class RealOBDConnection: OBDConnection {
         try await client.query(command, timeout: timeout)
     }
 
+    func resync() {
+        client.resync()
+    }
+
     func disconnect() {
         client.cancelAll()
         transport.disconnect()
