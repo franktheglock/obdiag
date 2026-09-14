@@ -10,6 +10,11 @@ and what parts or procedures are needed.
 - Xcode 27 / iOS 26 SDK
 - [XcodeGen](https://github.com/yonaskolb/XcodeGen) (`brew install xcodegen`)
 
+The AI assistant is powered by a small Firebase backend (see
+[`docs/BACKEND.md`](docs/BACKEND.md) and [`server/README.md`](server/README.md)).
+The app builds and runs **without** it — with no `GoogleService-Info.plist` it
+falls back to the built-in demo assistant.
+
 ## Build & run
 
 ```sh
@@ -27,21 +32,42 @@ built-in demo adapter that speaks the real ELM327 text protocol.
 OBDiag/
   App/            App entry, composition root, adaptive shell
   Core/           Models, storage, theming, settings
+  Core/Backend/   Firebase Auth, App Check, callable client, server account
   OBD/            CoreBluetooth transport, ELM327 protocol, PID/DTC decoding
   AI/             Provider clients, agent loop, tools, search backends
   VehicleData/    NHTSA vPIC catalog + VIN decode
   Features/       Garage, dashboard, chat, onboarding, settings
   Resources/      Assets and the StoreKit configuration
+server/           Firebase Functions: AI proxy, credit ledger, RevenueCat webhook
+docs/             Backend architecture and the shipping checklist
 ```
 
-Diagnostics are on-device by default: vehicles, conversations and settings live
-in Application Support, API keys in the Keychain.
+Vehicle data, conversations and settings stay on-device in Application Support.
+The managed assistant sends only the conversation to the backend; API keys are
+never stored on the device for the default provider.
 
-## Branches
+## AI providers
 
-- `main` — the shipping app.
-- `ai-evals` — the AI evaluation harness: a dependency-free Python replica of the
-  assistant (same prompt, tools and agent loop) with deterministic graders for
-  hallucinated specs, citations, abstentions, safety advice and tool use.
-  Runs in seconds with no simulator: `python3 eval/run.py --self-test`.
-  See `eval/README.md`. Kept off `main` so it never ships in the app binary.
+The assistant can run four ways, selectable in Settings:
+
+| Provider | Key handling | Metering |
+| --- | --- | --- |
+| **OBDiag AI** (default) | Key held server-side | Credits, server-enforced |
+| OpenRouter (your key) | Keychain, on-device | None — you pay OpenRouter |
+| LM Studio (local) | None, LAN only | None |
+| Demo | None, on-device | None |
+
+## Evaluation
+
+The AI eval harness is a dependency-free Python replica of the assistant (same
+prompt, tools and agent loop) with deterministic graders for hallucinated specs,
+citations, abstentions, safety advice and tool use. It runs in seconds with no
+simulator:
+
+```sh
+python3 eval/run.py --self-test
+python3 eval/check_drift.py
+```
+
+See [`eval/README.md`](eval/README.md). It is not part of any app target, so it
+never ships in the binary.

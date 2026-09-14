@@ -167,6 +167,11 @@ struct AIModel: Identifiable, Codable, Hashable, Sendable {
 
 /// Local and remote provider choices for the assistant.
 enum AIProviderKind: String, Codable, CaseIterable, Identifiable, Sendable {
+    /// Managed service: the key lives on the server and usage is metered in
+    /// credits. This is the default, and the only provider most users need.
+    case obdiag
+    /// Bring-your-own-key. Kept for power users who'd rather pay OpenRouter
+    /// directly than subscribe.
     case openRouter
     case lmStudio
     case demo
@@ -175,7 +180,8 @@ enum AIProviderKind: String, Codable, CaseIterable, Identifiable, Sendable {
 
     var title: String {
         switch self {
-        case .openRouter: return "OpenRouter"
+        case .obdiag: return "OBDiag AI"
+        case .openRouter: return "OpenRouter (your key)"
         case .lmStudio: return "LM Studio (local)"
         case .demo: return "Demo assistant"
         }
@@ -183,7 +189,8 @@ enum AIProviderKind: String, Codable, CaseIterable, Identifiable, Sendable {
 
     var subtitle: String {
         switch self {
-        case .openRouter: return "Cloud models from every major lab with one key."
+        case .obdiag: return "Included with your plan. No API key needed."
+        case .openRouter: return "Use your own OpenRouter key — you pay them directly."
         case .lmStudio: return "Run a model on your Mac or PC — nothing leaves your network."
         case .demo: return "Scripted answers so you can explore without any setup."
         }
@@ -191,6 +198,7 @@ enum AIProviderKind: String, Codable, CaseIterable, Identifiable, Sendable {
 
     var icon: String {
         switch self {
+        case .obdiag: return "bolt.badge.automatic.fill"
         case .openRouter: return "cloud.fill"
         case .lmStudio: return "desktopcomputer"
         case .demo: return "sparkles"

@@ -1,6 +1,7 @@
 import Foundation
 import Observation
 import UIKit
+import FirebaseAppCheck
 
 /// Composition root. Views read services from the environment; nothing else
 /// constructs them.
@@ -16,6 +17,13 @@ final class AppEnvironment {
     let obd: OBDSession
     let chat: ChatEngine
     let catalog: VehicleCatalogClient
+
+    /// Sign in with Apple backed by Firebase Auth.
+    let auth: BackendAuth
+    /// Server-authoritative plan and credit balance.
+    let account: BackendAccountStore
+    /// Nil when the build has no `GoogleService-Info.plist`.
+    private(set) var backend: CallableClient?
 
     /// Cross-feature navigation requests handled by `RootView`.
     var requestedSection: AppSection?
@@ -41,6 +49,25 @@ final class AppEnvironment {
         )
         let subscriptions = SubscriptionStore(credits: credits)
 
+        // Managed backend. Absent in checkouts without Firebase credentials, in
+        // which case the app falls back to the demo/local providers.
+        let auth = BackendAuth()
+        let account = BackendAccountStore()
+        var backend: CallableClient?
+        var managedAssistant: BackendChatClient?
+        if BackendConfig.isFirebaseConfigured {
+            let client = CallableClient(
+                idTokenProvider: { try await auth.idToken() },
+                appCheckTokenProvider: {
+                    let token = try await AppCheck.appCheck().token(forcingRefresh: false)
+                    return token.token
+                }
+            )
+            backend = client
+            account.configure(client: client)
+            managedAssistant = BackendChatClient(callable: client, account: account)
+        }
+
         self.settings = settings
         self.garage = garage
         self.conversations = conversations
@@ -50,8 +77,19 @@ final class AppEnvironment {
         self.chat = chat
         self.subscriptions = subscriptions
         self.catalog = VehicleCatalogClient()
+        self.auth = auth
+        self.account = account
+        self.backend = backend
 
-        chat.planProvider = { [weak subscriptions] in subscriptions?.plan ?? .free }
+        chat.planProvider = { [weak account] in account?.plan ?? subscriptions.plan }
+        chat.managedClientProvider = { [weak managedAssistant] in managedAssistant }
+        chat.serverBalanceProvider = { [weak account] in account?.credits }
+
+        // Without backend credentials the managed provider can't work, so start
+        // on the demo assistant rather than showing a dead end.
+        if !BackendConfig.isFirebaseConfigured, settings.provider == .obdiag {
+            settings.provider = .demo
+        }
 
         // Tidy up attachment files that no message references any more. Disk
         // I/O, so it stays off the launch path.
@@ -164,6 +202,17 @@ final class AppEnvironment {
     #endif
 
     // MARK: Convenience
+
+    /// Pull the server catalog and balance. Call after sign-in and on foreground.
+    func syncBackend() async {
+        guard let backend, auth.isSignedIn else { return }
+        await account.refresh()
+        if let models = try? await BackendChatClient(callable: backend, account: account).fetchModels(),
+           !models.isEmpty {
+            settings.cachedModels = models
+            settings.lastCatalogRefresh = Date()
+        }
+    }
 
     /// The conversation shown in the chat tab for the selected vehicle,
     /// creating one lazily.

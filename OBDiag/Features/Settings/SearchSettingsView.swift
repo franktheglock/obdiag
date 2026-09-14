@@ -305,6 +305,9 @@ struct ModelSettingsView: View {
                 env.settings.cachedModels = models
                 env.settings.lastCatalogRefresh = Date()
             }
+        case .obdiag:
+            // The server owns the catalogue, so a refresh also re-checks the plan.
+            await env.syncBackend()
         case .lmStudio:
             if let client = try? RemoteChatClient(kind: .lmStudio, apiKey: "", baseURLString: env.settings.lmStudioBaseURL),
                let models = try? await client.fetchModels(), !models.isEmpty {

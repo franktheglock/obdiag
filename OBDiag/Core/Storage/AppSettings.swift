@@ -16,7 +16,7 @@ final class AppSettings {
     var languageCode: String = "en" { didSet { scheduleSave() } }
 
     // MARK: Assistant
-    var provider: AIProviderKind = .demo { didSet { scheduleSave() } }
+    var provider: AIProviderKind = .obdiag { didSet { scheduleSave() } }
     var selectedModelID: String = AIModel.defaultModelID { didSet { scheduleSave() } }
     var lmStudioBaseURL: String = "http://localhost:1234/v1" { didSet { scheduleSave() } }
     var lmStudioModelID: String = "local-model" { didSet { scheduleSave() } }

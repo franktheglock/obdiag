@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<!--
+	  App Attest entitlement, used by Firebase App Check to attest that requests
+	  come from a genuine build of this app. Requires the "App Attest" capability
+	  to be enabled for this bundle id in the Apple Developer portal.
+
+	  Value is "development" for debug builds and "production" for App Store
+	  builds; Xcode substitutes the profile's value at signing time.
+	-->
+	<key>com.apple.developer.devicecheck.appattest-environment</key>
+	<string>development</string>
+</dict>
+</plist>

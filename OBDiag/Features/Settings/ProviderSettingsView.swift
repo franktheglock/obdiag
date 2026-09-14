@@ -21,10 +21,11 @@ struct ProviderSettingsView: View {
             } header: {
                 Text("Provider")
             } footer: {
-                Text("Requests go directly from this device to the provider you choose. OBDiag has no server and stores keys in the iOS Keychain.")
+                Text("The OBDiag service keeps the model key on our servers and meters usage in credits. Local and bring-your-own-key options never send anything to us.")
             }
 
             switch env.settings.provider {
+            case .obdiag: managedSection
             case .openRouter: openRouterSection
             case .lmStudio: lmStudioSection
             case .demo:
@@ -95,6 +96,46 @@ struct ProviderSettingsView: View {
     }
 
     // MARK: OpenRouter
+
+    /// Managed service: no key on the device, usage metered server-side.
+    @ViewBuilder
+    private var managedSection: some View {
+        Section {
+            if env.auth.isSignedIn {
+                LabeledContent("Account") {
+                    Text(env.auth.uid.map { String($0.prefix(8)) + "…" } ?? "Signed in")
+                        .font(.obMono(12))
+                        .foregroundStyle(Palette.textSecondary)
+                }
+                LabeledContent("Plan") {
+                    Text(env.account.plan.title)
+                        .foregroundStyle(Palette.textPrimary)
+                }
+                LabeledContent("Credits") {
+                    Text(Format.credits(env.account.credits))
+                        .foregroundStyle(Palette.textPrimary)
+                }
+                Button {
+                    Task { await env.account.syncEntitlements() }
+                } label: {
+                    Text("Refresh balance")
+                }
+                .disabled(env.account.isLoading)
+            } else {
+                Text("Sign in to use the OBDiag assistant. Your plan and credits follow your account across devices.")
+                    .font(.obCallout)
+                    .foregroundStyle(Palette.textSecondary)
+            }
+        } header: {
+            Text("OBDiag AI")
+        } footer: {
+            if let error = env.account.lastError {
+                Text(error).foregroundStyle(Palette.danger)
+            } else {
+                Text("Requests are sent to the OBDiag service, which uses a server-held model key and deducts credits from your balance.")
+            }
+        }
+    }
 
     @ViewBuilder
     private var openRouterSection: some View {

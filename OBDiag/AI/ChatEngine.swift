@@ -20,6 +20,10 @@ final class ChatEngine {
     var pendingQuestion: AskUserQuestion?
 
     var planProvider: (() -> PlanTier)?
+    /// Supplies the managed-service client, once the user is signed in.
+    var managedClientProvider: (() -> ChatCompletionClient?)?
+    /// Supplies the server-authoritative credit balance for the pre-flight check.
+    var serverBalanceProvider: (() -> Int?)?
 
     // MARK: Dependencies
 
@@ -106,6 +110,11 @@ final class ChatEngine {
 
     private func makeClient() throws -> ChatCompletionClient {
         switch settings.provider {
+        case .obdiag:
+            guard let client = managedClientProvider?() else {
+                throw AIError.provider("Sign in to use the OBDiag assistant.")
+            }
+            return client
         case .demo:
             if let demoAssistant { return demoAssistant }
             let assistant = DemoAssistant(obd: obd, garage: garage)
@@ -121,6 +130,7 @@ final class ChatEngine {
 
     var isConfigured: Bool {
         switch settings.provider {
+        case .obdiag: return managedClientProvider?() != nil
         case .demo: return true
         case .openRouter: return !settings.openRouterAPIKey.isBlank
         case .lmStudio: return !settings.lmStudioBaseURL.isBlank
@@ -135,15 +145,19 @@ final class ChatEngine {
         guard conversations.conversation(withID: conversationID) != nil else { return }
 
         if !isConfigured {
-            conversations.appendMessage(
-                .error("Add an API key in Settings → AI provider, or switch to the demo assistant. You can keep browsing live data and fault codes meanwhile."),
-                to: conversationID
-            )
+            let message = settings.provider == .obdiag
+                ? "Sign in to use the OBDiag assistant. You can keep browsing live data and fault codes meanwhile."
+                : "Add an API key in Settings → AI provider, or switch to the demo assistant. You can keep browsing live data and fault codes meanwhile."
+            conversations.appendMessage(.error(message), to: conversationID)
             return
         }
 
-        // Pre-flight credit check for metered providers.
-        if settings.provider == .openRouter, credits.balance <= 0 {
+        // Pre-flight credit check for metered providers. The server is the real
+        // authority; this just avoids a round-trip and a confusing failure.
+        let balance: Int? = settings.provider == .obdiag
+            ? serverBalanceProvider?()
+            : settings.provider == .openRouter ? credits.balance : nil
+        if let balance, balance <= 0 {
             conversations.appendMessage(
                 .error("You're out of AI credits. Top up in Settings → Subscription, or switch to a local/demo model."),
                 to: conversationID
@@ -443,7 +457,8 @@ final class ChatEngine {
 
     private func applyUsage(_ usage: TokenUsage, model: AIModel, conversationID: UUID, client: ChatCompletionClient) {
         conversations.addUsage(usage, to: conversationID)
-        guard !client.isLocal, usage.totalTokens > 0 else { return }
+        // The managed service debits server-side, so don't double-charge locally.
+        guard !client.isLocal, !client.isServerMetered, usage.totalTokens > 0 else { return }
         let cost = CreditPricing.credits(for: usage, model: model, plan: currentPlan)
         guard cost > 0 else { return }
         credits.spend(cost, note: "\(model.name) · \(usage.totalTokens) tokens", modelID: model.id)

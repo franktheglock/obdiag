@@ -50,11 +50,14 @@ struct AboutView: View {
 
             Section("Privacy") {
                 aboutRow(icon: "lock.shield.fill", tint: Palette.success,
-                         title: "On-device by default",
-                         detail: "Vehicles, conversations, settings and the credit ledger are stored locally. OBDiag runs no server.")
+                         title: "Vehicle data stays on-device",
+                         detail: "Vehicles, conversations, live sensor data and fault codes are stored locally and never uploaded wholesale.")
+                aboutRow(icon: "cloud.fill", tint: Palette.accent,
+                         title: "What the server receives",
+                         detail: "If you use the OBDiag AI provider, your conversation and vehicle context are sent to our service to produce an answer, along with an anonymous account id. Local, demo and bring-your-own-key providers send nothing to us.")
                 aboutRow(icon: "key.fill", tint: Palette.accent,
                          title: "Keys in the Keychain",
-                         detail: "API keys are kept in the iOS Keychain and sent only to the provider you choose.")
+                         detail: "If you supply your own API key it is kept in the iOS Keychain and sent only to the provider you choose.")
                 aboutRow(icon: "antenna.radiowaves.left.and.right", tint: Palette.amber,
                          title: "Explicit network use",
                          detail: "Traffic to the AI provider, search backends and the NHTSA database happens only when those features are used.")

@@ -18,6 +18,14 @@ settings:
     CODE_SIGN_STYLE: Automatic
     ENABLE_USER_SCRIPT_SANDBOXING: NO
 
+packages:
+  Firebase:
+    url: https://github.com/firebase/firebase-ios-sdk
+    from: 12.19.1
+  RevenueCat:
+    url: https://github.com/RevenueCat/purchases-ios
+    from: 5.0.0
+
 targets:
   OBDiag:
     type: application
@@ -26,6 +34,20 @@ targets:
       - path: OBDiag
         excludes:
           - "Resources/StoreKit/**"
+          # Referenced by CODE_SIGN_ENTITLEMENTS, not a bundled resource.
+          - "OBDiag.entitlements"
+    dependencies:
+      # Firebase Auth provides Sign in with Apple; App Check attests that
+      # requests come from a genuine build of this app.
+      - package: Firebase
+        product: FirebaseCore
+      - package: Firebase
+        product: FirebaseAuth
+      - package: Firebase
+        product: FirebaseAppCheck
+      # RevenueCat owns StoreKit, receipt validation and webhooks.
+      - package: RevenueCat
+        product: RevenueCat
     postBuildScripts:
       - name: Strip extended attributes
         basedOnDependencyAnalysis: false
@@ -61,6 +83,11 @@ targets:
         ENABLE_DEBUG_DYLIB: NO
         SUPPORTS_MACCATALYST: NO
         INCLUDE_ONLY_APPLE_FRAMEWORKS: YES
+        CODE_SIGN_ENTITLEMENTS: OBDiag/OBDiag.entitlements
+        # RevenueCat public SDK key (appl_…). Supply it at build time:
+        #   xcodebuild ... REVENUECAT_API_KEY=appl_xxx
+        # or set it in the Xcode scheme's environment. Empty disables the store.
+        INFOPLIST_KEY_RevenueCatAPIKey: "$(REVENUECAT_API_KEY)"
 
   OBDiagUITests:
     type: bundle.ui-testing

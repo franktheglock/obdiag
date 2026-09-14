@@ -6,12 +6,16 @@ protocol ChatCompletionClient: AnyObject {
     var displayName: String { get }
     /// True when this client runs locally/free and should not consume credits.
     var isLocal: Bool { get }
+    /// True when the provider bills server-side (the managed service). The client
+    /// must not also deduct from the local ledger in that case.
+    var isServerMetered: Bool { get }
     func stream(request: ChatCompletionRequest) async throws -> AsyncThrowingStream<StreamEvent, Error>
     func fetchModels() async throws -> [AIModel]
 }
 
 extension ChatCompletionClient {
     var isLocal: Bool { false }
+    var isServerMetered: Bool { false }
 }
 
 /// OpenAI-compatible client used for both OpenRouter and LM Studio.

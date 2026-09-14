@@ -7,12 +7,16 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		01214E6833A3D353E6F33DFC /* FirebaseAppCheck in Frameworks */ = {isa = PBXBuildFile; productRef = 4F4FAD22E3B2424EA42D6801 /* FirebaseAppCheck */; };
 		0292BA55C17D2DD835BCCB69 /* AttachmentStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE04F75F6011E2778C884D06 /* AttachmentStore.swift */; };
+		0B55DF08902FCC48A25A9E20 /* FirebaseCore in Frameworks */ = {isa = PBXBuildFile; productRef = DC088551306B652794E3AC03 /* FirebaseCore */; };
 		0B6BA75652E7271063BFF94C /* Vehicle.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2EBC11771FC04D385057B9C9 /* Vehicle.swift */; };
 		0F9D161674CBA65E31641F7D /* SubscriptionModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1BDA3747ED31FE25D065C632 /* SubscriptionModels.swift */; };
 		14EF20DC267C798D7B1CB792 /* AIModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4A0796971C2150860F240CF5 /* AIModel.swift */; };
 		1739F837CC8B21CE2577280B /* GlobalConnectionBanner.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7213EC96447DF8BA94920BB3 /* GlobalConnectionBanner.swift */; };
+		17733C652E817780859C5CDB /* BackendConfig.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8B14C0411A48DA832927DAFE /* BackendConfig.swift */; };
 		19E64F65BE5343A9B5DD58F8 /* Theme.swift in Sources */ = {isa = PBXBuildFile; fileRef = 69A129585ECEFCD0B2F394CB /* Theme.swift */; };
+		1DCB15275B73AB6A36DCE84E /* BackendAuth.swift in Sources */ = {isa = PBXBuildFile; fileRef = 474969CD8A0403DEF48CFB08 /* BackendAuth.swift */; };
 		1F506DE4D881D363661A8017 /* EditVehicleView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99D8CEC5F1AF2F1BDE34AADC /* EditVehicleView.swift */; };
 		2330642C5425078F1A62C355 /* UserProfile.swift in Sources */ = {isa = PBXBuildFile; fileRef = 630137C289F05CA965F85463 /* UserProfile.swift */; };
 		243735448A7E621A803B7CBF /* CameraPicker.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4069EE927642B44E8D57E458 /* CameraPicker.swift */; };
@@ -20,6 +24,7 @@
 		25843D12984B38E2468B5B2F /* MarkdownText.swift in Sources */ = {isa = PBXBuildFile; fileRef = C03A951596AB1F7845C16FCA /* MarkdownText.swift */; };
 		29B2B97FDC7E010F32F89F91 /* Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7E32879BB2582EA4F0CD87ED /* Extensions.swift */; };
 		2A2A45B444A96DE8180A0004 /* ChatHistoryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A4F24E41501F9BE9B73710C8 /* ChatHistoryView.swift */; };
+		2B9B2DEC27B1937BB24C7483 /* FirebaseAuth in Frameworks */ = {isa = PBXBuildFile; productRef = 36CB9AF5AF4E1AC036411E2B /* FirebaseAuth */; };
 		315C78BCF6C7119EB581F485 /* StreamingTypes.swift in Sources */ = {isa = PBXBuildFile; fileRef = EDD4EDD1CC22B70820BCA655 /* StreamingTypes.swift */; };
 		35AC0064286FD80D480945A8 /* ProviderSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E8B6627842B8CAA62E5ED893 /* ProviderSettingsView.swift */; };
 		362285870455EE10496D16B8 /* Formatters.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0405ECDC22AF20135695FA5E /* Formatters.swift */; };
@@ -56,14 +61,18 @@
 		ACE63A9738F8ABA66EFB80CA /* SubscriptionStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = A376ACCCD8E268ECD5A3E90E /* SubscriptionStore.swift */; };
 		B4EAEF18E8E527C77A0E96DE /* ELM327Client.swift in Sources */ = {isa = PBXBuildFile; fileRef = DF2753CE61F29F153F8C5ED6 /* ELM327Client.swift */; };
 		B5C8AAEB92456816E3E86AD9 /* Units.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4CD89EA196A9786A409528F8 /* Units.swift */; };
+		BA0871B0FBB77B04CE2664C6 /* CallableClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 40932161B75C7ACB66CC9FF2 /* CallableClient.swift */; };
 		BA109B0C816ACB429CC3548D /* AboutView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 79B7E6CE5BF3F96B9CC9F3CF /* AboutView.swift */; };
+		BA25FFED6414AE1351FEABB2 /* AppCheckProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 68ADF152E52680FDA5CA5545 /* AppCheckProvider.swift */; };
 		BCA04C68A05813BF9FDC77A2 /* MessageAttachment.swift in Sources */ = {isa = PBXBuildFile; fileRef = AE2750AD4BB3763F7BB40D8A /* MessageAttachment.swift */; };
 		C34A45E197B782D77630D05F /* ToolRegistry.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD793AD9E7439A9B87580C61 /* ToolRegistry.swift */; };
 		C5A514F8509E8582E900EF30 /* AppSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = F8C88724ABE6EB7A523ED04D /* AppSettings.swift */; };
+		C935B1D4C1891C6E6AAF87E8 /* BackendAccountStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83D31AD6CDFA028E5D5CECDB /* BackendAccountStore.swift */; };
 		CA49B570A43A3AE903953810 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C8575F6A79ED191E057B042E /* SettingsView.swift */; };
 		CB2AB1CCF087761085FA2499 /* DTCCodec.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4D7B117DA2CB71E2FD7419CB /* DTCCodec.swift */; };
 		CD34646882FA6861E580E059 /* DTCKnowledge.swift in Sources */ = {isa = PBXBuildFile; fileRef = B228B3CE15E167416ACE75F8 /* DTCKnowledge.swift */; };
 		CE5ECC932C354CDD6FFC1810 /* RealOBDConnection.swift in Sources */ = {isa = PBXBuildFile; fileRef = 201FDF4E1A7983B5DC2905E5 /* RealOBDConnection.swift */; };
+		CF057AC63C6BAB110E0A4C0B /* BackendChatClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 61F053179524E98F4294FA59 /* BackendChatClient.swift */; };
 		D1C7F89CD410AFAE60B9821B /* SearchModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = BC7330376F14685F515F60CA /* SearchModels.swift */; };
 		D589D2D980BC1784BE912B0C /* OBDSession.swift in Sources */ = {isa = PBXBuildFile; fileRef = CB7B5AE3B9E5822EE4845464 /* OBDSession.swift */; };
 		D66649CE560F39820B7F27D7 /* SearchService.swift in Sources */ = {isa = PBXBuildFile; fileRef = DBC09BC54877323F815327E6 /* SearchService.swift */; };
@@ -74,6 +83,7 @@
 		EF9909A8FB0663CB3D9950B1 /* SearchSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 75C1F64ABB640607E76C344E /* SearchSettingsView.swift */; };
 		F2065F8C40A671FA55BC9D65 /* PromptBuilder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1946C0F8F69B00630402C2DA /* PromptBuilder.swift */; };
 		F7913FAE9D6C4AC85DB42BD1 /* SensorsGrid.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0D6C1984774B1C62F6F158A5 /* SensorsGrid.swift */; };
+		FFFE4F1A582215A7C5C90672 /* RevenueCat in Frameworks */ = {isa = PBXBuildFile; productRef = A674403173478B864E6032C0 /* RevenueCat */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -102,6 +112,8 @@
 		2EBC11771FC04D385057B9C9 /* Vehicle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Vehicle.swift; sourceTree = "<group>"; };
 		3BE63ABB6D1098C16746B5F7 /* JSONValue.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JSONValue.swift; sourceTree = "<group>"; };
 		4069EE927642B44E8D57E458 /* CameraPicker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CameraPicker.swift; sourceTree = "<group>"; };
+		40932161B75C7ACB66CC9FF2 /* CallableClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CallableClient.swift; sourceTree = "<group>"; };
+		474969CD8A0403DEF48CFB08 /* BackendAuth.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BackendAuth.swift; sourceTree = "<group>"; };
 		479F2BC7C250EBBE0136BA12 /* AddVehicleFlow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AddVehicleFlow.swift; sourceTree = "<group>"; };
 		4A0796971C2150860F240CF5 /* AIModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AIModel.swift; sourceTree = "<group>"; };
 		4CD89EA196A9786A409528F8 /* Units.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Units.swift; sourceTree = "<group>"; };
@@ -111,9 +123,11 @@
 		5580F23F1F76DF28092EC93C /* GarageStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GarageStore.swift; sourceTree = "<group>"; };
 		57AA189BCCA900B571AEBF13 /* OBDiagUITests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = OBDiagUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		613D4B7C73D5C493F7BAB15A /* ChatEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatEngine.swift; sourceTree = "<group>"; };
+		61F053179524E98F4294FA59 /* BackendChatClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BackendChatClient.swift; sourceTree = "<group>"; };
 		630137C289F05CA965F85463 /* UserProfile.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserProfile.swift; sourceTree = "<group>"; };
 		632E203A0424961E129031B2 /* SubscriptionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SubscriptionView.swift; sourceTree = "<group>"; };
 		64FEE50BDCCED9EB7504860A /* OBDTypes.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OBDTypes.swift; sourceTree = "<group>"; };
+		68ADF152E52680FDA5CA5545 /* AppCheckProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppCheckProvider.swift; sourceTree = "<group>"; };
 		69A129585ECEFCD0B2F394CB /* Theme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Theme.swift; sourceTree = "<group>"; };
 		6C129D4BDD5AF52823CF45F1 /* RootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RootView.swift; sourceTree = "<group>"; };
 		6C7980E358F0C24E7D605719 /* ChatCompletionClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatCompletionClient.swift; sourceTree = "<group>"; };
@@ -123,8 +137,10 @@
 		75C1F64ABB640607E76C344E /* SearchSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SearchSettingsView.swift; sourceTree = "<group>"; };
 		79B7E6CE5BF3F96B9CC9F3CF /* AboutView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AboutView.swift; sourceTree = "<group>"; };
 		7E32879BB2582EA4F0CD87ED /* Extensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Extensions.swift; sourceTree = "<group>"; };
+		83D31AD6CDFA028E5D5CECDB /* BackendAccountStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BackendAccountStore.swift; sourceTree = "<group>"; };
 		84E4180936FD3F5E0376CE21 /* GarageView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GarageView.swift; sourceTree = "<group>"; };
 		87EB6F35A86EB5630F86D3C3 /* AppEnvironment.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppEnvironment.swift; sourceTree = "<group>"; };
+		8B14C0411A48DA832927DAFE /* BackendConfig.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BackendConfig.swift; sourceTree = "<group>"; };
 		8F5B3A745DE41C8BEA4A418F /* GlassKit.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GlassKit.swift; sourceTree = "<group>"; };
 		99D8CEC5F1AF2F1BDE34AADC /* EditVehicleView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EditVehicleView.swift; sourceTree = "<group>"; };
 		9AF85DCA290495648537D6C7 /* MessageViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MessageViews.swift; sourceTree = "<group>"; };
@@ -158,7 +174,33 @@
 		FFD40826DAC5BA922E5C9CA6 /* AIChatView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AIChatView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
+/* Begin PBXFrameworksBuildPhase section */
+		FCA639348D926B7EFD6BA69C /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				0B55DF08902FCC48A25A9E20 /* FirebaseCore in Frameworks */,
+				2B9B2DEC27B1937BB24C7483 /* FirebaseAuth in Frameworks */,
+				01214E6833A3D353E6F33DFC /* FirebaseAppCheck in Frameworks */,
+				FFFE4F1A582215A7C5C90672 /* RevenueCat in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
 /* Begin PBXGroup section */
+		24919B2FB55738A5938C4163 /* Backend */ = {
+			isa = PBXGroup;
+			children = (
+				68ADF152E52680FDA5CA5545 /* AppCheckProvider.swift */,
+				83D31AD6CDFA028E5D5CECDB /* BackendAccountStore.swift */,
+				474969CD8A0403DEF48CFB08 /* BackendAuth.swift */,
+				8B14C0411A48DA832927DAFE /* BackendConfig.swift */,
+				40932161B75C7ACB66CC9FF2 /* CallableClient.swift */,
+			);
+			path = Backend;
+			sourceTree = "<group>";
+		};
 		2599C056DE09EB447248F768 /* Support */ = {
 			isa = PBXGroup;
 			children = (
@@ -345,6 +387,7 @@
 		CED09E2A8878E77B509A8B03 /* Core */ = {
 			isa = PBXGroup;
 			children = (
+				24919B2FB55738A5938C4163 /* Backend */,
 				612AAD58C9486A4BF7A59F0D /* Models */,
 				E5CA075AEBDBF148C29B36CE /* Storage */,
 				2599C056DE09EB447248F768 /* Support */,
@@ -357,6 +400,7 @@
 			isa = PBXGroup;
 			children = (
 				F5479D3007A789A580D1EA10 /* Search */,
+				61F053179524E98F4294FA59 /* BackendChatClient.swift */,
 				6C7980E358F0C24E7D605719 /* ChatCompletionClient.swift */,
 				613D4B7C73D5C493F7BAB15A /* ChatEngine.swift */,
 				3BE63ABB6D1098C16746B5F7 /* JSONValue.swift */,
@@ -429,6 +473,7 @@
 			buildPhases = (
 				47BB5BF7C6BD2F6CA9B1B8E1 /* Sources */,
 				3D2ABEA2360B87E248167AB9 /* Resources */,
+				FCA639348D926B7EFD6BA69C /* Frameworks */,
 				2A3D93C95B65E64F67D169A8 /* Strip extended attributes */,
 			);
 			buildRules = (
@@ -437,6 +482,10 @@
 			);
 			name = OBDiag;
 			packageProductDependencies = (
+				DC088551306B652794E3AC03 /* FirebaseCore */,
+				36CB9AF5AF4E1AC036411E2B /* FirebaseAuth */,
+				4F4FAD22E3B2424EA42D6801 /* FirebaseAppCheck */,
+				A674403173478B864E6032C0 /* RevenueCat */,
 			);
 			productName = OBDiag;
 			productReference = 0F77521C6BC8C14B2E3601FD /* OBDiag.app */;
@@ -471,6 +520,10 @@
 			);
 			mainGroup = B68DBA94FFBA7147ADA36AEA;
 			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				E89E3137F8692F948B114E6C /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */,
+				932637D93D565DF5A65D141F /* XCRemoteSwiftPackageReference "purchases-ios" */,
+			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 868D5A51D84CF11DBD63857B /* Products */;
 			projectDirPath = "";
@@ -532,10 +585,16 @@
 				14EF20DC267C798D7B1CB792 /* AIModel.swift in Sources */,
 				BA109B0C816ACB429CC3548D /* AboutView.swift in Sources */,
 				3C79243D35DC6D36CF10EAA7 /* AddVehicleFlow.swift in Sources */,
+				BA25FFED6414AE1351FEABB2 /* AppCheckProvider.swift in Sources */,
 				63FED6A045DCB87E06565BD8 /* AppEnvironment.swift in Sources */,
 				C5A514F8509E8582E900EF30 /* AppSettings.swift in Sources */,
 				0292BA55C17D2DD835BCCB69 /* AttachmentStore.swift in Sources */,
 				47E821E7BCA3ECDEDFE60649 /* BLEOBDTransport.swift in Sources */,
+				C935B1D4C1891C6E6AAF87E8 /* BackendAccountStore.swift in Sources */,
+				1DCB15275B73AB6A36DCE84E /* BackendAuth.swift in Sources */,
+				CF057AC63C6BAB110E0A4C0B /* BackendChatClient.swift in Sources */,
+				17733C652E817780859C5CDB /* BackendConfig.swift in Sources */,
+				BA0871B0FBB77B04CE2664C6 /* CallableClient.swift in Sources */,
 				243735448A7E621A803B7CBF /* CameraPicker.swift in Sources */,
 				A5CEC0C005C957B1F9B6B356 /* ChatCompletionClient.swift in Sources */,
 				254598297F3BC16F5682E905 /* ChatEngine.swift in Sources */,
@@ -648,6 +707,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = OBDiag/OBDiag.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CURRENT_PROJECT_VERSION = 1;
 				ENABLE_DEBUG_DYLIB = NO;
@@ -661,6 +721,7 @@
 				INFOPLIST_KEY_NSCameraUsageDescription = "OBDiag uses the camera so you can photograph warning lights, leaks or damaged parts and ask the AI assistant about them.";
 				INFOPLIST_KEY_NSLocalNetworkUsageDescription = "OBDiag connects to a local AI model server (LM Studio) on your network.";
 				INFOPLIST_KEY_NSPhotoLibraryAddUsageDescription = "OBDiag saves photos you attached in chat back to your photo library when you ask it to.";
+				INFOPLIST_KEY_RevenueCatAPIKey = "$(REVENUECAT_API_KEY)";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -753,6 +814,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = OBDiag/OBDiag.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CURRENT_PROJECT_VERSION = 1;
 				ENABLE_DEBUG_DYLIB = NO;
@@ -766,6 +828,7 @@
 				INFOPLIST_KEY_NSCameraUsageDescription = "OBDiag uses the camera so you can photograph warning lights, leaks or damaged parts and ask the AI assistant about them.";
 				INFOPLIST_KEY_NSLocalNetworkUsageDescription = "OBDiag connects to a local AI model server (LM Studio) on your network.";
 				INFOPLIST_KEY_NSPhotoLibraryAddUsageDescription = "OBDiag saves photos you attached in chat back to your photo library when you ask it to.";
+				INFOPLIST_KEY_RevenueCatAPIKey = "$(REVENUECAT_API_KEY)";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -877,6 +940,48 @@
 			defaultConfigurationName = Debug;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		932637D93D565DF5A65D141F /* XCRemoteSwiftPackageReference "purchases-ios" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/RevenueCat/purchases-ios";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 5.0.0;
+			};
+		};
+		E89E3137F8692F948B114E6C /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/firebase/firebase-ios-sdk";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 12.19.1;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		36CB9AF5AF4E1AC036411E2B /* FirebaseAuth */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = E89E3137F8692F948B114E6C /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseAuth;
+		};
+		4F4FAD22E3B2424EA42D6801 /* FirebaseAppCheck */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = E89E3137F8692F948B114E6C /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseAppCheck;
+		};
+		A674403173478B864E6032C0 /* RevenueCat */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 932637D93D565DF5A65D141F /* XCRemoteSwiftPackageReference "purchases-ios" */;
+			productName = RevenueCat;
+		};
+		DC088551306B652794E3AC03 /* FirebaseCore */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = E89E3137F8692F948B114E6C /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseCore;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = 52953A337028BE0FDFC5CBF9 /* Project object */;
 }

@@ -191,6 +191,9 @@ struct SettingsView: View {
 
     private var providerDetail: String {
         switch env.settings.provider {
+        case .obdiag:
+            guard env.auth.isSignedIn else { return "Sign in needed" }
+            return "\(env.account.plan.title) · \(Format.credits(env.account.credits)) credits"
         case .demo: return "Demo assistant"
         case .openRouter: return env.settings.openRouterAPIKey.isBlank ? "API key needed" : "Connected"
         case .lmStudio: return env.settings.lmStudioBaseURL
