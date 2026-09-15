@@ -23,7 +23,7 @@ your products until they exist in App Store Connect.
 
   ```sh
   npm i -g firebase-tools
-  firebase login
+  npx -y firebase-tools@latest login
   ```
 
 - [ ] **A Firebase project on the Blaze plan.** Cloud Functions need Blaze to
@@ -49,23 +49,39 @@ sign-in works.
 
 ### 1.1 Create the project and iOS app
 
-1. <https://console.firebase.google.com> → **Add project**. Note the project ID
-   (e.g. `obdiag-app`).
-2. **Add app → iOS**, bundle ID `com.obdiag.app`.
-3. Download **`GoogleService-Info.plist`** and drop it at:
+All of this is scriptable, so you never have to open the Console for it. If you
+already have a Firebase project you want to use instead, skip to step 3 and just
+point the CLI and app at it.
 
-   ```
-   OBDiag/Resources/GoogleService-Info.plist
+1. Sign in and note the project id you want:
+
+   ```sh
+   npx -y firebase-tools@latest login          # add --no-localhost on a remote shell
+   npx -y firebase-tools@latest projects:create obdiag-app --display-name "OBDiag"
    ```
 
-   Then `xcodegen generate` — the project globs `OBDiag/`, so it is picked up as
-   a resource automatically. No project.yml edit needed.
+   The id must be 6–30 characters, lowercase, and globally unique.
+
+2. Register the iOS app and fetch its config. Use `npx -y firebase-tools@latest
+   apps:list` to get the `<APP_ID>` if you need it:
+
+   ```sh
+   npx -y firebase-tools@latest apps:sdkconfig IOS <APP_ID> --project obdiag-app \
+     > OBDiag/Resources/GoogleService-Info.plist
+   ```
+
+   Then `xcodegen generate` — the project globs `OBDiag/`, so the plist is
+   bundled automatically. No `project.yml` edit needed.
 
    The file contains no secret (it ships inside the app), so committing it is
    normal. Keep it out of a public repo if you'd rather not advertise the
-   project ID.
+   project id.
 
-4. Point the app and CLI at your project:
+3. Point the app and CLI at your project:
+
+   ```sh
+   npx -y firebase-tools@latest use obdiag-app
+   ```
 
    | File | Setting |
    | --- | --- |
@@ -79,6 +95,9 @@ sign-in works.
    app switches providers as soon as it is.
 
 ### 1.2 Enable Authentication
+
+The CLI can only enable Google, anonymous and email/password sign-in. **Apple
+must be enabled in the Console.**
 
 **Authentication → Sign-in method → Apple → Enable.**
 
@@ -105,12 +124,31 @@ because personal teams cannot sign for it (see `server/README.md`).
 
 ### 1.4 Create Firestore
 
-**Firestore Database → Create database.** Production mode is fine — the security
-rules in `server/firestore.rules` deny all client access, and every read and
-write goes through a callable using the Admin SDK, which bypasses rules.
+**Decide the edition before creating the database — it is awkward to change.**
 
-Also enable **Authentication → Settings → Email enumeration protection** if
-prompted; unrelated to this app but a sensible default.
+This project is set up for **Standard edition** with the `(default)` database.
+`server/firebase.json` matches that shape, and the Cloud Functions use
+`getFirestore(app)`, which addresses `(default)`.
+
+An **Enterprise edition** database must have a *named* id — it can never be
+`(default)` — so choosing it means three extra changes: `edition`, `database`
+and `location` in the `firestore` block of `firebase.json`, and
+`FIRESTORE_DATABASE_ID` set for the functions. Nothing here needs Enterprise's
+features (multi-database, MongoDB compatibility), so Standard is the simpler
+and recommended choice; the code supports either.
+
+Check what already exists before creating anything, and pick a location
+colocated with your functions region:
+
+```sh
+npx -y firebase-tools@latest firestore:databases:list
+npx -y firebase-tools@latest firestore:locations
+```
+
+With Standard edition and `(default)`, the database is created for you on first
+deploy — you do not need a create command. The security rules in
+`server/firestore.rules` deny all client access, which is correct here because
+no client can reach Firestore anyway (the app does not link the Firestore SDK).
 
 ### 1.5 Upgrade to Blaze
 
@@ -249,10 +287,10 @@ npm install && npm run typecheck && npm test    # 81 tests, no emulator needed
 Set the four secrets (each prompts for the value):
 
 ```sh
-firebase functions:secrets:set OPENROUTER_API_KEY                # sk-or-v1-…
-firebase functions:secrets:set REVENUECAT_WEBHOOK_AUTH           # long random string
-firebase functions:secrets:set REVENUECAT_WEBHOOK_SIGNING_SECRET # from RevenueCat
-firebase functions:secrets:set REVENUECAT_API_KEY                # sk_…
+npx -y firebase-tools@latest functions:secrets:set OPENROUTER_API_KEY                # sk-or-v1-…
+npx -y firebase-tools@latest functions:secrets:set REVENUECAT_WEBHOOK_AUTH           # long random string
+npx -y firebase-tools@latest functions:secrets:set REVENUECAT_WEBHOOK_SIGNING_SECRET # from RevenueCat
+npx -y firebase-tools@latest functions:secrets:set REVENUECAT_API_KEY                # sk_…
 ```
 
 `OPENROUTER_API_KEY` is the one that actually pays for model usage. **Set a
@@ -263,7 +301,7 @@ Then:
 
 ```sh
 cd server
-firebase deploy --only functions,firestore:rules,firestore:indexes
+npx -y firebase-tools@latest deploy --only functions,firestore:rules,firestore:indexes
 ```
 
 The deploy prints each function URL; use the `revenuecatWebhook` one for §3.4.

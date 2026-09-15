@@ -1,23 +1,101 @@
 rules_version = '2';
 
-// OBDiag — Firestore security rules.
+// ===============================================================
+// OBDiag — Cloud Firestore Security Rules
+// ===============================================================
 //
-// The client has NO direct Firestore access. Every read and write goes through
-// a callable function, which authenticates the caller and applies business
-// rules (plan gating, credit limits). The Admin SDK used by those functions
-// bypasses these rules, so denying everything here is both the safest and the
-// simplest posture: there is no client-side path to a credit balance at all.
+// Posture: deny everything. The client has NO direct Firestore access at all.
 //
-// If you later add a client-side read (for example an offline balance cache),
-// scope it narrowly to the owner's own document and keep it read-only:
+// This is possible because the iOS app does not link the Firestore SDK — the
+// target depends on FirebaseCore, FirebaseAuth and FirebaseAppCheck only. Every
+// read and write goes through a Cloud Function callable, which authenticates the
+// caller, applies business rules (plan gating, credit limits, model
+// authorisation) and uses the Admin SDK. The Admin SDK bypasses these rules, so
+// there is deliberately no client-reachable path to any of the data below.
 //
-//   match /users/{uid} {
-//     allow read: if request.auth != null && request.auth.uid == uid;
-//     allow write: if false;
-//   }
+// Using the Standard edition `(default)` database. If you provision an
+// Enterprise-edition database instead, `edition`, `database` and `location`
+// must be added to the `firestore` block of firebase.json and
+// FIRESTORE_DATABASE_ID must be set for the functions — see
+// server/functions/src/config.ts.
+//
+// ===============================================================
+// Assumed Data Model (server-written, never client-written)
+// ===============================================================
+//
+// Collection: users/{uid}
+//   Document ID: the Firebase Auth uid
+//   Fields:
+//     - uid: string (required, immutable) — duplicates the document id
+//     - plan: string (required) — 'free' | 'plus' | 'pro'
+//     - credits: number (required) — authoritative balance, may go negative
+//         after a settle that exceeded its reservation
+//     - lifetimeGranted: number (required)
+//     - lifetimeSpent: number (required)
+//     - lastGrantPeriod: string | null — 'YYYY-MM', makes the monthly grant
+//         idempotent across the webhook and on-read paths
+//     - entitlements: map (required) — entitlement id => {
+//         productId: string, store: string, expiresAt: timestamp | null,
+//         isConsumable: boolean }
+//     - createdAt, updatedAt: timestamp (required)
+//
+// Subcollection: users/{uid}/ledger/{idempotencyKey}
+//   Document ID: idempotency key, so a retried webhook cannot double-grant
+//   Fields:
+//     - amount: number (required, non-zero, signed)
+//     - reason: string (required) — 'welcome' | 'monthlyGrant' | 'purchase'
+//         | 'subscription' | 'chat' | 'adjustment' | 'refund'
+//     - note: string (required)
+//     - balanceAfter: number (required)
+//     - modelId: string (optional)
+//     - usage: map | null (optional) — provider token counts and cost, kept for
+//         margin reporting
+//     - createdAt: timestamp (required)
+//
+// Subcollection: users/{uid}/reservations/{reservationId}
+//   Fields:
+//     - amount: number (required) — credits held before a stream starts
+//     - settled: boolean (required)
+//     - actualCredits: number (optional, set on settle)
+//     - note: string
+//     - createdAt, settledAt: timestamp
+//
+// Subcollection: users/{uid}/processedEvents/{eventId}
+//   Document ID: the RevenueCat event id, used to make webhook handling
+//   idempotent
+//   Fields:
+//     - type, productId, environment: string
+//     - processedAt: timestamp
+//
+// Collection: anonymousPurchases/{appUserId}_{eventId}
+//   Purchases that arrived before the user signed in, parked so the credits are
+//   not lost. Never read by the client.
+//
+// Collection: usage/{uid}
+//   Fields:
+//     - firstSeenAt: timestamp
+//
+// ===============================================================
+// Rules
+// ===============================================================
 
 service cloud.firestore {
   match /databases/{database}/documents {
+
+    // Deny by default, including the collections above. Nothing in this app is
+    // client-readable or client-writable; the Admin SDK is unaffected by this.
+    //
+    // If a future feature needs a client-side read (for example an offline
+    // balance cache), scope it narrowly and keep it read-only:
+    //
+    //   match /users/{uid} {
+    //     allow read: if request.auth != null && request.auth.uid == uid;
+    //     allow write: if false;
+    //   }
+    //
+    // and note that `users/{uid}` contains billing state, so a read there
+    // exposes a credit balance to its owner — harmless — but must never extend
+    // to another uid.
     match /{document=**} {
       allow read, write: if false;
     }

@@ -36,6 +36,21 @@ export const ALL_SECRETS = [
 export const REGION = "us-central1";
 export const OPENROUTER_BASE = "https://openrouter.ai/api/v1";
 
+/**
+ * Firestore database id.
+ *
+ * Empty means the `(default)` database, which is what a Standard-edition
+ * project has and is what this project is set up for.
+ *
+ * An **Enterprise-edition** database must have a *named* id — it can never be
+ * `(default)` — so if you provision Enterprise you must also set
+ * `FIRESTORE_DATABASE_ID`, and add `edition`, `database` and `location` to the
+ * `firestore` block in `firebase.json`. Without this the functions would talk
+ * to a database that does not exist, which fails at runtime rather than at
+ * deploy.
+ */
+export const FIRESTORE_DATABASE_ID = process.env.FIRESTORE_DATABASE_ID?.trim() ?? "";
+
 /** Sent to OpenRouter for attribution / dashboard analytics. */
 export const APP_REFERER = "https://obdiag.app";
 export const APP_TITLE = "OBDiag";

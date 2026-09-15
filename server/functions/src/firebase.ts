@@ -6,10 +6,15 @@
 import { initializeApp, getApps, App } from "firebase-admin/app";
 import { getFirestore, Firestore } from "firebase-admin/firestore";
 import { getAuth, Auth } from "firebase-admin/auth";
+import { FIRESTORE_DATABASE_ID } from "./config";
 
 const app: App = getApps()[0] ?? initializeApp();
 
-export const db: Firestore = getFirestore(app);
+// Standard edition uses the `(default)` database; an Enterprise database has a
+// named id and must be addressed explicitly. See FIRESTORE_DATABASE_ID.
+export const db: Firestore = FIRESTORE_DATABASE_ID
+  ? getFirestore(app, FIRESTORE_DATABASE_ID)
+  : getFirestore(app);
 export const auth: Auth = getAuth(app);
 
 // Undefined fields would otherwise be rejected by Firestore on write.

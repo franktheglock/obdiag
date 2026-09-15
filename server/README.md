@@ -38,10 +38,10 @@ npm test              # 75 unit tests, no emulator needed
 These live in Cloud Secret Manager and never enter the app binary or the repo.
 
 ```sh
-firebase functions:secrets:set OPENROUTER_API_KEY              # sk-or-v1-…
-firebase functions:secrets:set REVENUECAT_WEBHOOK_AUTH         # any long random string
-firebase functions:secrets:set REVENUECAT_WEBHOOK_SIGNING_SECRET  # from RevenueCat (if using HMAC)
-firebase functions:secrets:set REVENUECAT_API_KEY              # sk_… (for syncEntitlements)
+npx -y firebase-tools@latest functions:secrets:set OPENROUTER_API_KEY              # sk-or-v1-…
+npx -y firebase-tools@latest functions:secrets:set REVENUECAT_WEBHOOK_AUTH         # any long random string
+npx -y firebase-tools@latest functions:secrets:set REVENUECAT_WEBHOOK_SIGNING_SECRET  # from RevenueCat (if using HMAC)
+npx -y firebase-tools@latest functions:secrets:set REVENUECAT_API_KEY              # sk_… (for syncEntitlements)
 ```
 
 `OPENROUTER_API_KEY` is the one that actually pays for model usage. Set a
@@ -108,7 +108,7 @@ Consumables:
 RevenueCat dashboard → Integrations → Webhooks → Add new configuration.
 
 - **URL:** `https://<region>-<project>.cloudfunctions.net/revenuecatWebhook`
-  (printed by `firebase deploy`)
+  (printed by `npx -y firebase-tools@latest deploy`)
 - **Authorization header:** the same value you set as `REVENUECAT_WEBHOOK_AUTH`
 - **HMAC signing:** optional but recommended; store the secret as
   `REVENUECAT_WEBHOOK_SIGNING_SECRET`
@@ -120,7 +120,7 @@ RevenueCat dashboard → Integrations → Webhooks → Add new configuration.
 
 ```sh
 cd server
-firebase deploy --only functions,firestore:rules,firestore:indexes
+npx -y firebase-tools@latest deploy --only functions,firestore:rules,firestore:indexes
 ```
 
 ## 8. Local development
