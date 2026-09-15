@@ -8,3 +8,7 @@ xcuserdata/
 # Eval secrets and reports (see the `eval` branch)
 .eval/
 __pycache__/
+
+# Eval run reports are generated output
+eval/reports/
+

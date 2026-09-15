@@ -33,7 +33,14 @@ try:  # pragma: no cover - environment dependent
 except Exception:  # pragma: no cover
     pass
 
-OPENROUTER_URL = "https://openrouter.ai/api/v1/chat/completions"
+# OpenAI-compatible endpoint. Override the base URL to evaluate a model served
+# somewhere other than OpenRouter — RunInfra, for instance — without touching the
+# harness:
+#
+#   OBDIAG_EVAL_BASE_URL=https://api.runinfra.ai/v1 \
+#   OBDIAG_EVAL_KEY=... python3 eval/run.py --models glm-5-3-flash
+BASE_URL = os.environ.get("OBDIAG_EVAL_BASE_URL", "https://openrouter.ai/api/v1").rstrip("/")
+OPENROUTER_URL = f"{BASE_URL}/chat/completions"
 
 MAX_TURNS = 6  # mirrors ChatEngine's tool-call cap
 

@@ -33,6 +33,8 @@ SCENARIOS_PATH = HERE / "scenarios.json"
 REPORTS_DIR = HERE / "reports"
 
 MODELS: list[dict[str, Any]] = [
+    {"id": "glm-5-3-flash", "name": "GLM 5.3 Flash (RunInfra)", "tier": "flash",
+     "inputPrice": 0.10, "outputPrice": 0.40, "base_url": "https://api.runinfra.ai/v1"},
     {"id": "deepseek/deepseek-v4.1-flash", "name": "DeepSeek V4.1 Flash", "tier": "flash",
      "inputPrice": 0.15, "outputPrice": 0.60},
     {"id": "openai/gpt-5.6-luna", "name": "GPT-5.6 Luna", "tier": "flash",
