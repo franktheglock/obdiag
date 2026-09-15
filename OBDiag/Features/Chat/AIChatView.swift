@@ -433,9 +433,17 @@ struct AIChatView: View {
     }
 
     private var showsLowCreditWarning: Bool {
-        guard env.settings.provider == .openRouter else { return false }
-        let threshold = max(10, env.subscriptions.plan.monthlyCredits / 10)
-        return env.credits.balance <= threshold
+        switch env.settings.provider {
+        case .obdiag:
+            // Server-metered, and the only provider that actually blocks once
+            // the balance runs out — so the warning matters most here, not least.
+            guard env.creditsComeFromServer else { return false }
+            return env.creditBalance <= max(10, env.account.plan.monthlyCredits / 10)
+        case .openRouter:
+            return env.creditBalance <= max(10, env.subscriptions.plan.monthlyCredits / 10)
+        case .lmStudio, .demo:
+            return false
+        }
     }
 
     private var lowCreditWarning: some View {
@@ -443,7 +451,7 @@ struct AIChatView: View {
             Image(systemName: "exclamationmark.circle.fill")
                 .font(.system(size: 12, weight: .semibold))
                 .foregroundStyle(Palette.amber)
-            Text("\(Format.credits(env.credits.balance)) credits left")
+            Text("\(Format.credits(env.creditBalance)) credits left")
                 .font(.obMicro)
                 .foregroundStyle(Palette.textSecondary)
             Spacer(minLength: 0)

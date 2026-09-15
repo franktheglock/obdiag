@@ -279,7 +279,7 @@ struct ModelPickerSheet: View {
             Image(systemName: "sparkles")
                 .foregroundStyle(Palette.accent)
             VStack(alignment: .leading, spacing: 2) {
-                Text("\(env.subscriptions.plan.title) plan · \(Format.credits(env.credits.balance)) credits")
+                Text("\(env.subscriptions.plan.title) plan · \(Format.credits(env.creditBalance)) credits")
                     .font(.obCallout.weight(.semibold))
                     .foregroundStyle(Palette.textPrimary)
                 Text("Higher tiers reason deeper and cost more credits per answer.")

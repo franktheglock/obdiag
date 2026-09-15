@@ -17,6 +17,7 @@ enum BackendConfig {
         static let listModels = "listModels"
         static let accountSummary = "getAccountSummary"
         static let syncEntitlements = "syncEntitlements"
+        static let ledger = "getLedger"
     }
 
     /// `https://<region>-<projectID>.cloudfunctions.net/<name>`, matching the

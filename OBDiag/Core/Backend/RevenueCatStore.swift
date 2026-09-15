@@ -86,6 +86,11 @@ final class RevenueCatStore {
     /// to sign in on this device doesn't inherit the previous entitlements.
     func forgetUser() async {
         guard isAvailable else { return }
+        // Only worth calling once we have actually identified someone. RevenueCat
+        // logs an error (and throws) if logOut runs while the user is already
+        // anonymous, which is the state on every launch of a signed-out app —
+        // `onUserChanged` fires with nil as soon as Firebase reports no user.
+        guard configuredUserID != nil else { return }
         configuredUserID = nil
         do {
             apply(try await Purchases.shared.logOut())

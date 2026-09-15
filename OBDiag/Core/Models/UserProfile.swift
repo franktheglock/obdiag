@@ -69,16 +69,28 @@ enum CreditReason: String, Codable, Sendable {
     case welcome
     case monthlyGrant
     case purchase
+    case subscription
     case chat
     case adjustment
+    case refund
+
+    /// Unknown reasons decode to `.adjustment` rather than throwing. The server
+    /// can add a reason before the app ships, and a decoding failure would take
+    /// out the whole ledger screen over an unrecognised label.
+    init(from decoder: Decoder) throws {
+        let raw = try decoder.singleValueContainer().decode(String.self)
+        self = CreditReason(rawValue: raw) ?? .adjustment
+    }
 
     var title: String {
         switch self {
         case .welcome: return "Welcome bonus"
         case .monthlyGrant: return "Monthly allowance"
         case .purchase: return "Credit pack"
+        case .subscription: return "Subscription"
         case .chat: return "AI usage"
         case .adjustment: return "Adjustment"
+        case .refund: return "Refund"
         }
     }
 
@@ -87,8 +99,10 @@ enum CreditReason: String, Codable, Sendable {
         case .welcome: return "gift.fill"
         case .monthlyGrant: return "calendar.badge.plus"
         case .purchase: return "bag.fill"
+        case .subscription: return "arrow.triangle.2.circlepath"
         case .chat: return "sparkles"
         case .adjustment: return "wrench.and.screwdriver.fill"
+        case .refund: return "arrow.uturn.backward"
         }
     }
 }
@@ -102,6 +116,21 @@ struct CreditTransaction: Identifiable, Codable, Hashable, Sendable {
     var note: String
     var balanceAfter: Int
     var modelID: String?
+}
+
+/// One row of credit activity for the subscribe screen.
+///
+/// Normalises the two possible sources: the server ledger (authoritative, and
+/// the only one written on a managed account) and the local ledger used by the
+/// bring-your-own-key and local providers. Without this the screen can only show
+/// one of them, and on a managed account that one is always empty.
+struct CreditActivity: Identifiable, Hashable {
+    var id: String
+    /// Negative for spend, positive for grants.
+    var amount: Int
+    var reason: CreditReason
+    var note: String
+    var date: Date?
 }
 
 /// Converts model usage into credits.

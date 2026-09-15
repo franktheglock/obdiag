@@ -22,6 +22,11 @@ final class BackendAccountStore {
     private(set) var lastError: String?
     private(set) var lastRefreshed: Date?
 
+    /// Recent ledger entries, newest first. This is the only source of credit
+    /// *history* for a managed account: the client has no Firestore access, and
+    /// the local ledger is never written when the server meters usage.
+    private(set) var ledgerEntries: [CreditActivity] = []
+
     private var client: CallableClient?
 
     /// Response shape of `getAccountSummary` / `syncEntitlements`.
@@ -83,6 +88,48 @@ final class BackendAccountStore {
             credits = balance
         }
     }
+
+    /// Response shape of `getLedger`.
+    private struct LedgerResponse: Decodable {
+        struct Entry: Decodable {
+            var id: String
+            var amount: Int
+            var reason: CreditReason
+            var note: String
+            var balanceAfter: Int?
+            var modelId: String?
+            var createdAt: Double?
+        }
+        var entries: [Entry]
+    }
+
+    /// Fetch recent credit activity. Separate from `refresh()` so the subscribe
+    /// screen can show a balance immediately and fill history in behind it.
+    func refreshLedger() async {
+        guard let client else { return }
+        do {
+            let response = try await client.call(
+                BackendConfig.Function.ledger,
+                payload: ["limit": 25],
+                as: LedgerResponse.self
+            )
+            ledgerEntries = response.entries.map { entry in
+                CreditActivity(
+                    id: entry.id,
+                    amount: entry.amount,
+                    reason: entry.reason,
+                    note: entry.note,
+                    date: entry.createdAt.map { Date(timeIntervalSince1970: $0 / 1000) }
+                )
+            }
+        } catch {
+            // History is a nicety; a failure here must not blank the screen.
+            lastError = error.localizedDescription
+        }
+    }
+
+    /// Total spent, from the server, when a balance has been read at least once.
+    var spentTotal: Int { lifetimeSpent }
 
     func apply(_ summary: Summary) {
         plan = summary.plan

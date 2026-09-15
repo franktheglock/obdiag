@@ -13,7 +13,7 @@ struct SubscriptionContent: View {
     var body: some View {
         ScrollView {
                 VStack(alignment: .leading, spacing: 20) {
-                    if env.auth.isSignedIn {
+                    if env.showsStore {
                         balanceHero
                         if let banner {
                             Text(banner)
@@ -72,7 +72,7 @@ struct SubscriptionContent: View {
                     Text("Credit balance")
                         .font(.obCaption)
                         .foregroundStyle(Palette.textSecondary)
-                    Text(Format.credits(env.credits.balance))
+                    Text(Format.credits(env.creditBalance))
                         .font(.obMono(40, weight: .bold))
                         .foregroundStyle(Palette.textPrimary)
                         .contentTransition(.numericText())
@@ -81,7 +81,7 @@ struct SubscriptionContent: View {
                 GlassChip(text: env.subscriptions.plan.title, systemImage: "checkmark.seal.fill", tint: Palette.accent)
             }
             HStack(spacing: 14) {
-                stat("Used this month", Format.credits(env.credits.spentThisMonth))
+                stat("Spent", Format.credits(env.creditSpent))
                 stat("Monthly grant", "+\(Format.credits(env.subscriptions.plan.monthlyCredits))")
                 if let renewal = env.subscriptions.renewalSummary {
                     stat("Renewal", renewal.replacingOccurrences(of: "Renews ", with: ""))
@@ -317,11 +317,12 @@ struct SubscriptionContent: View {
 
     @ViewBuilder
     private var history: some View {
-        if !env.credits.recentTransactions.isEmpty {
+        let activity = env.creditActivity
+        if !activity.isEmpty {
             VStack(alignment: .leading, spacing: 10) {
                 SectionHeader(title: "Credit activity", subtitle: "Most recent first")
                 VStack(spacing: 0) {
-                    ForEach(Array(env.credits.recentTransactions.prefix(10).enumerated()), id: \.element.id) { index, transaction in
+                    ForEach(Array(activity.prefix(10).enumerated()), id: \.element.id) { index, transaction in
                         HStack(spacing: 11) {
                             Image(systemName: transaction.reason.icon)
                                 .font(.system(size: 13, weight: .semibold))
@@ -341,14 +342,14 @@ struct SubscriptionContent: View {
                                 Text(transaction.amount > 0 ? "+\(transaction.amount)" : "\(transaction.amount)")
                                     .font(.obMono(13, weight: .semibold))
                                     .foregroundStyle(transaction.amount > 0 ? Palette.success : Palette.textSecondary)
-                                Text(Format.relative(transaction.date))
+                                Text(Format.relative(transaction.date ?? Date()))
                                     .font(.obMicro)
                                     .foregroundStyle(Palette.textTertiary)
                             }
                         }
                         .padding(.horizontal, 14)
                         .padding(.vertical, 10)
-                        if index < min(env.credits.recentTransactions.count, 10) - 1 {
+                        if index < min(activity.count, 10) - 1 {
                             Divider().overlay(Palette.stroke)
                         }
                     }

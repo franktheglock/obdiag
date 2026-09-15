@@ -34,6 +34,14 @@ final class AppEnvironment {
     /// Photos handed to the composer by another feature or a debug hook.
     var pendingAttachments: [MessageAttachment] = []
 
+    /// Debug-only: render the store UI without an account, so the paywall can be
+    /// reviewed and screenshotted before sign-in and App Store products exist.
+    /// Set by the `-previewStore` launch argument; never true in Release.
+    private(set) var isPreviewingStore = false
+
+    /// Whether the store UI should render instead of the sign-in gate.
+    var showsStore: Bool { auth.isSignedIn || isPreviewingStore }
+
     init() {
         let settings = AppSettings()
         let garage = GarageStore()
@@ -133,6 +141,11 @@ final class AppEnvironment {
     /// selects a tab, and `-demoAdapter` connects the simulated adapter.
     private func applyLaunchArguments() {
         let arguments = ProcessInfo.processInfo.arguments
+
+        // Set before the guard below, so `-previewStore` works on its own.
+        if arguments.contains("-previewStore") {
+            isPreviewingStore = true
+        }
         if arguments.contains("-resetOnboarding") {
             settings.resetOnboarding()
             if arguments.count == 1 { return }
@@ -231,11 +244,47 @@ final class AppEnvironment {
     func syncBackend() async {
         guard let backend, auth.isSignedIn else { return }
         await account.refresh()
+        await account.refreshLedger()
         await subscriptions.refreshEntitlements()
         if let models = try? await BackendChatClient(callable: backend, account: account).fetchModels(),
            !models.isEmpty {
             settings.cachedModels = models
             settings.lastCatalogRefresh = Date()
+        }
+    }
+
+    // MARK: Credits
+
+    /// True when the server meters usage, and therefore owns the balance.
+    ///
+    /// The local ledger is never written on this path (see `ChatEngine`), so
+    /// anything reading it directly would show a balance of zero to a customer
+    /// who had just bought credits.
+    var creditsComeFromServer: Bool { settings.provider == .obdiag && auth.isSignedIn }
+
+    /// Authoritative credit balance for whichever provider is active.
+    var creditBalance: Int {
+        creditsComeFromServer ? account.credits : credits.balance
+    }
+
+    /// Credits spent, for the balance hero.
+    var creditSpent: Int {
+        creditsComeFromServer ? account.lifetimeSpent : credits.lifetimeSpent
+    }
+
+    /// Recent credit activity, newest first, from whichever ledger is live.
+    var creditActivity: [CreditActivity] {
+        if creditsComeFromServer {
+            return account.ledgerEntries
+        }
+        return credits.recentTransactions.map {
+            CreditActivity(
+                id: $0.id.uuidString,
+                amount: $0.amount,
+                reason: $0.reason,
+                note: $0.note,
+                date: $0.date
+            )
         }
     }
 

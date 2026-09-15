@@ -20,7 +20,7 @@ import { handleWebhookBody, verifyAuthorizationHeader, verifySignature } from ".
 import { DomainError } from "./credits";
 
 export { chat, listModels } from "./ai";
-export { getAccountSummary, syncEntitlements } from "./account";
+export { getAccountSummary, syncEntitlements, getLedger } from "./account";
 
 /**
  * RevenueCat webhook receiver.

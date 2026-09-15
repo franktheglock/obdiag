@@ -193,7 +193,7 @@ struct SettingsView: View {
                         Text(env.subscriptions.plan.title + " plan")
                             .font(.obHeadline)
                             .foregroundStyle(Palette.textPrimary)
-                        Text("\(Format.credits(env.credits.balance)) credits available")
+                        Text("\(Format.credits(env.creditBalance)) credits available")
                             .font(.obCaption)
                             .foregroundStyle(Palette.textSecondary)
                     }

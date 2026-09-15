@@ -6,7 +6,8 @@
 import { onCall, HttpsError, CallableRequest } from "firebase-functions/v2/https";
 import { logger } from "firebase-functions/v2";
 import { Timestamp } from "firebase-admin/firestore";
-import { REGION, REVENUECAT_API_KEY } from "./config";
+import { COLLECTIONS, REGION, REVENUECAT_API_KEY } from "./config";
+import { db } from "./firebase";
 import {
   accountSummary,
   applyEntitlement,
@@ -102,3 +103,52 @@ export const syncEntitlements = onCall(
 );
 
 export { DomainError };
+
+/**
+ * Recent credit activity for the subscribe screen.
+ *
+ * The balance itself comes from `getAccountSummary`; this exists because the
+ * ledger is the only place the *history* lives, and the client has no direct
+ * Firestore access. Without it the app would have to fall back to its local
+ * ledger, which is never written on a managed account — so a customer would see
+ * a purchase they had made but no record of it.
+ *
+ * The ledger is keyed by idempotency key rather than being ordered, so this
+ * sorts by `createdAt` and caps the result. A single-field orderBy needs no
+ * composite index.
+ */
+export const getLedger = onCall(
+  { region: REGION, cors: true, enforceAppCheck: true },
+  async (request: CallableRequest<{ limit?: number }>) => {
+    const uid = request.auth?.uid;
+    if (!uid) throw new HttpsError("unauthenticated", "Sign in to continue.");
+    await ensureAccount(uid);
+
+    const requested = request.data?.limit ?? 25;
+    const limit = Math.min(Math.max(Math.trunc(requested) || 25, 1), 100);
+
+    const snapshot = await db
+      .collection(COLLECTIONS.users)
+      .doc(uid)
+      .collection(COLLECTIONS.ledger)
+      .orderBy("createdAt", "desc")
+      .limit(limit)
+      .get();
+
+    return {
+      entries: snapshot.docs.map((doc) => {
+        const data = doc.data();
+        const createdAt = data.createdAt as Timestamp | undefined;
+        return {
+          id: doc.id,
+          amount: typeof data.amount === "number" ? data.amount : 0,
+          reason: typeof data.reason === "string" ? data.reason : "adjustment",
+          note: typeof data.note === "string" ? data.note : "",
+          balanceAfter: typeof data.balanceAfter === "number" ? data.balanceAfter : 0,
+          modelId: typeof data.modelId === "string" ? data.modelId : null,
+          createdAt: createdAt ? createdAt.toMillis() : null,
+        };
+      }),
+    };
+  },
+);
