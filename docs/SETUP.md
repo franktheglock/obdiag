@@ -70,9 +70,10 @@ point the CLI and app at it.
      > OBDiag/Resources/GoogleService-Info.plist
    ```
 
-   Then `xcodegen generate` — the project globs `OBDiag/`, so the plist is
-   bundled automatically. No `project.yml` edit needed. **Run `xcodegen
-   generate` after adding it**, or the new file won't be in the project.
+   That's it — a "Copy local config" build phase bundles the plist when it
+   exists, so there is nothing to regenerate. (It is deliberately *not* a
+   project file member: that would bake it into `project.pbxproj` and break
+   the build on any clone without it.)
 
    `GoogleService-Info.plist` is **gitignored**, so it stays on your machine. It
    holds no secret, but it is per-project, and keeping it out means a clone never
@@ -262,8 +263,10 @@ a Swift `let` is compiled into the binary — so a bundled file is the equivalen
 ```sh
 cp OBDiag/Resources/Secrets.example.plist OBDiag/Resources/Secrets.plist
 # fill in RevenueCatTestAPIKey (test_…) and/or RevenueCatAppStoreAPIKey (appl_…)
-xcodegen generate    # so the new file is bundled
 ```
+
+The "Copy local config" build phase bundles it on the next build; nothing to
+regenerate.
 
 Debug prefers the Test Store key and Release prefers the App Store key, falling
 back to whichever is present, so supplying one is enough. The key is public by

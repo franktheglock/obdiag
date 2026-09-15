@@ -16,7 +16,6 @@
 		14EF20DC267C798D7B1CB792 /* AIModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4A0796971C2150860F240CF5 /* AIModel.swift */; };
 		1739F837CC8B21CE2577280B /* GlobalConnectionBanner.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7213EC96447DF8BA94920BB3 /* GlobalConnectionBanner.swift */; };
 		17733C652E817780859C5CDB /* BackendConfig.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8B14C0411A48DA832927DAFE /* BackendConfig.swift */; };
-		17FD5B755DC8BDDCB4752890 /* Secrets.plist in Resources */ = {isa = PBXBuildFile; fileRef = 17A2E524436029380B4359A8 /* Secrets.plist */; };
 		19E64F65BE5343A9B5DD58F8 /* Theme.swift in Sources */ = {isa = PBXBuildFile; fileRef = 69A129585ECEFCD0B2F394CB /* Theme.swift */; };
 		1DCB15275B73AB6A36DCE84E /* BackendAuth.swift in Sources */ = {isa = PBXBuildFile; fileRef = 474969CD8A0403DEF48CFB08 /* BackendAuth.swift */; };
 		1F506DE4D881D363661A8017 /* EditVehicleView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99D8CEC5F1AF2F1BDE34AADC /* EditVehicleView.swift */; };
@@ -66,7 +65,6 @@
 		BA0871B0FBB77B04CE2664C6 /* CallableClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 40932161B75C7ACB66CC9FF2 /* CallableClient.swift */; };
 		BA109B0C816ACB429CC3548D /* AboutView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 79B7E6CE5BF3F96B9CC9F3CF /* AboutView.swift */; };
 		BA25FFED6414AE1351FEABB2 /* AppCheckProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 68ADF152E52680FDA5CA5545 /* AppCheckProvider.swift */; };
-		BC934C7863C691E3F526D431 /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = 735BADFD37A96DE8831F34B3 /* GoogleService-Info.plist */; };
 		BCA04C68A05813BF9FDC77A2 /* MessageAttachment.swift in Sources */ = {isa = PBXBuildFile; fileRef = AE2750AD4BB3763F7BB40D8A /* MessageAttachment.swift */; };
 		C34A45E197B782D77630D05F /* ToolRegistry.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD793AD9E7439A9B87580C61 /* ToolRegistry.swift */; };
 		C5A514F8509E8582E900EF30 /* AppSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = F8C88724ABE6EB7A523ED04D /* AppSettings.swift */; };
@@ -105,7 +103,6 @@
 		0AA04640A5F5ECC28E252DB6 /* Keychain.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Keychain.swift; sourceTree = "<group>"; };
 		0D6C1984774B1C62F6F158A5 /* SensorsGrid.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SensorsGrid.swift; sourceTree = "<group>"; };
 		0F77521C6BC8C14B2E3601FD /* OBDiag.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = OBDiag.app; sourceTree = BUILT_PRODUCTS_DIR; };
-		17A2E524436029380B4359A8 /* Secrets.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Secrets.plist; sourceTree = "<group>"; };
 		1847AF32E8DCE9AE8884622A /* DemoOBDConnection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DemoOBDConnection.swift; sourceTree = "<group>"; };
 		1946C0F8F69B00630402C2DA /* PromptBuilder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PromptBuilder.swift; sourceTree = "<group>"; };
 		1A0EDD6DB98CFF72A998B6DE /* Haptics.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Haptics.swift; sourceTree = "<group>"; };
@@ -139,7 +136,6 @@
 		6FB57E9439FC6942A90F45AC /* CreditLedger.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CreditLedger.swift; sourceTree = "<group>"; };
 		70A376A5E4D182295249F644 /* OBDiagApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OBDiagApp.swift; sourceTree = "<group>"; };
 		7213EC96447DF8BA94920BB3 /* GlobalConnectionBanner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GlobalConnectionBanner.swift; sourceTree = "<group>"; };
-		735BADFD37A96DE8831F34B3 /* GoogleService-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = "GoogleService-Info.plist"; sourceTree = "<group>"; };
 		75C1F64ABB640607E76C344E /* SearchSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SearchSettingsView.swift; sourceTree = "<group>"; };
 		79B7E6CE5BF3F96B9CC9F3CF /* AboutView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AboutView.swift; sourceTree = "<group>"; };
 		7A5FD77EBFAC1FCC7E5644DC /* Secrets.example.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Secrets.example.plist; sourceTree = "<group>"; };
@@ -327,9 +323,7 @@
 			isa = PBXGroup;
 			children = (
 				ABFB8BCC76E420B08BD01B76 /* Assets.xcassets */,
-				735BADFD37A96DE8831F34B3 /* GoogleService-Info.plist */,
 				7A5FD77EBFAC1FCC7E5644DC /* Secrets.example.plist */,
-				17A2E524436029380B4359A8 /* Secrets.plist */,
 			);
 			path = Resources;
 			sourceTree = "<group>";
@@ -486,6 +480,7 @@
 				47BB5BF7C6BD2F6CA9B1B8E1 /* Sources */,
 				3D2ABEA2360B87E248167AB9 /* Resources */,
 				FCA639348D926B7EFD6BA69C /* Frameworks */,
+				A81592C1409769FD2C9A8546 /* Copy local config */,
 				2A3D93C95B65E64F67D169A8 /* Strip extended attributes */,
 			);
 			buildRules = (
@@ -553,9 +548,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				59CC6E03C0DCB5FC947A57E4 /* Assets.xcassets in Resources */,
-				BC934C7863C691E3F526D431 /* GoogleService-Info.plist in Resources */,
 				DA9B50C12496AB8344F5424B /* Secrets.example.plist in Resources */,
-				17FD5B755DC8BDDCB4752890 /* Secrets.plist in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -580,6 +573,25 @@
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
 			shellScript = "xattr -cr \"$TARGET_BUILD_DIR/$WRAPPER_NAME\" 2>/dev/null || true";
+		};
+		A81592C1409769FD2C9A8546 /* Copy local config */ = {
+			isa = PBXShellScriptBuildPhase;
+			alwaysOutOfDate = 1;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+			);
+			name = "Copy local config";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "for f in GoogleService-Info.plist Secrets.plist; do\n  src=\"$SRCROOT/OBDiag/Resources/$f\"\n  if [ -f \"$src\" ]; then\n    cp \"$src\" \"$TARGET_BUILD_DIR/$UNLOCALIZED_RESOURCES_FOLDER_PATH/$f\"\n  fi\ndone\n";
 		};
 /* End PBXShellScriptBuildPhase section */
 
