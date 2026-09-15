@@ -83,11 +83,24 @@ targets:
         ENABLE_DEBUG_DYLIB: NO
         SUPPORTS_MACCATALYST: NO
         INCLUDE_ONLY_APPLE_FRAMEWORKS: YES
-        CODE_SIGN_ENTITLEMENTS: OBDiag/OBDiag.entitlements
         # RevenueCat public SDK key (appl_…). Supply it at build time:
         #   xcodebuild ... REVENUECAT_API_KEY=appl_xxx
         # or set it in the Xcode scheme's environment. Empty disables the store.
         INFOPLIST_KEY_RevenueCatAPIKey: "$(REVENUECAT_API_KEY)"
+      configs:
+        # App Attest is only needed for Release, and it requires a paid Apple
+        # Developer Program membership: personal teams cannot sign for
+        # `com.apple.developer.devicecheck.appattest-environment`, so applying it
+        # to Debug breaks local development with
+        # "Personal development teams ... do not support the App Attest capability".
+        #
+        # Debug therefore signs no entitlements and uses the App Check debug
+        # provider, which needs none — it prints a token to the console that you
+        # register under App Check → Apps → Manage debug tokens.
+        Debug:
+          CODE_SIGN_ENTITLEMENTS: ""
+        Release:
+          CODE_SIGN_ENTITLEMENTS: OBDiag/OBDiag.entitlements
 
   OBDiagUITests:
     type: bundle.ui-testing

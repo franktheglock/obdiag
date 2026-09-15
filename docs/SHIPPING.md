@@ -123,6 +123,10 @@ Flash). At 100k monthly actives that is ~$10k/month with no revenue.
   must also be told (`Purchases.shared.logOut()`), and server data purged.
 - [ ] `DEVELOPMENT_TEAM` is empty in `project.yml`; set a real team and a
   distribution profile.
+- [ ] **App Attest needs a paid team.** The entitlement is Release-only because
+  personal teams cannot sign for it; Debug uses the App Check debug provider
+  instead. Before archiving, enable the App Attest capability for the bundle id
+  and use a profile that includes it. See `server/README.md`.
 - [ ] Set `REVENUECAT_API_KEY` at build time (see `server/README.md`).
 - [ ] App Store Connect: create the 7 products; RevenueCat entitlements named
   `plus` and `pro`; webhook configured.

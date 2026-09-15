@@ -58,11 +58,24 @@ You'll need an Apple Services ID, team ID and key. See
 (with DeviceCheck as fallback). The `chat` callable has `enforceAppCheck: true`,
 so requests fail until this is configured.
 
-For simulator debugging, register the debug token printed at launch under
+App Attest requires a **paid** Apple Developer Program membership. Personal
+teams cannot sign for `com.apple.developer.devicecheck.appattest-environment`,
+which is why the entitlement is applied to **Release only** in `project.yml`:
+
+| Config | Entitlement | App Check provider |
+| --- | --- | --- |
+| Debug | none | debug provider (prints a token at launch) |
+| Release | App Attest | App Attest, DeviceCheck fallback |
+
+So local development and simulator work on a personal team with no setup. For
+simulator debugging, register the debug token printed at launch under
 App Check → Apps → Manage debug tokens.
 
-Enable the **App Attest** capability for the bundle id in the Apple Developer
-portal — `OBDiag/OBDiag.entitlements` already carries the entitlement.
+Before archiving for TestFlight or the App Store you need a paid team, the
+**App Attest** capability enabled for the bundle id in the Apple Developer
+portal, and a distribution profile that includes it. Archiving without it fails
+loudly at signing, which is intentional — a Release build without App Attest
+would produce an app whose assistant requests the server rejects.
 
 ## 5. Create the products
 
