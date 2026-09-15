@@ -12,7 +12,9 @@ final class AppEnvironment {
     let garage: GarageStore
     let conversations: ConversationStore
     let credits: CreditLedger
-    let subscriptions: SubscriptionStore
+    /// RevenueCat-backed store client. Owns StoreKit; the app never reads
+    /// transactions itself.
+    let subscriptions: RevenueCatStore
     let search: SearchService
     let obd: OBDSession
     let chat: ChatEngine
@@ -47,7 +49,7 @@ final class AppEnvironment {
             obd: obd,
             search: search
         )
-        let subscriptions = SubscriptionStore(credits: credits)
+        let subscriptions = RevenueCatStore()
 
         // Managed backend. Absent in checkouts without Firebase credentials, in
         // which case the app falls back to the demo/local providers.
@@ -81,9 +83,31 @@ final class AppEnvironment {
         self.account = account
         self.backend = backend
 
-        chat.planProvider = { [weak account] in account?.plan ?? subscriptions.plan }
+        chat.planProvider = { [weak account] in account?.plan ?? .free }
         chat.managedClientProvider = { [weak managedAssistant] in managedAssistant }
         chat.serverBalanceProvider = { [weak account] in account?.credits }
+
+        // Keep RevenueCat's appUserID in step with the Firebase uid, and re-sync
+        // the server balance whenever either side changes.
+        auth.onUserChanged = { [weak self] uid in
+            guard let self else { return }
+            Task { @MainActor in
+                if let uid {
+                    await self.subscriptions.identify(uid)
+                } else {
+                    await self.subscriptions.forgetUser()
+                }
+                await self.syncBackend()
+            }
+        }
+
+        // A purchase or restore only becomes credits when RevenueCat's webhook
+        // reaches the server, so pull the authoritative balance back down.
+        subscriptions.onEntitlementsChanged = { [weak self] in
+            guard let self else { return }
+            Task { @MainActor in await self.syncBackend() }
+        }
+        subscriptions.attach()
 
         // Without backend credentials the managed provider can't work, so start
         // on the demo assistant rather than showing a dead end.
@@ -207,6 +231,7 @@ final class AppEnvironment {
     func syncBackend() async {
         guard let backend, auth.isSignedIn else { return }
         await account.refresh()
+        await subscriptions.refreshEntitlements()
         if let models = try? await BackendChatClient(callable: backend, account: account).fetchModels(),
            !models.isEmpty {
             settings.cachedModels = models

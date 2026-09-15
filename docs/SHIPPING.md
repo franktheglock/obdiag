@@ -137,15 +137,18 @@ Flash). At 100k monthly actives that is ~$10k/month with no revenue.
 
 ## 4. Remaining engineering
 
-- [ ] **RevenueCat purchase UI** (highest priority). Replace `SubscriptionStore`
-  (StoreKit 2 direct) with a RevenueCat-backed store:
-  `Purchases.configure(withAPIKey:appUserID: uid)` on sign-in,
-  `offerings()` for display, `purchase(package:)`, `restorePurchases()`,
-  `logIn`/`logOut`. Then delete the local `CreditLedger` spend path for the
-  managed provider. Shipping both would double-handle transactions.
-- [ ] **Sign-in UI**: an onboarding/settings gate calling
-  `env.auth.signInWithApple()`, plus `await env.syncBackend()` on launch and
-  foreground (wired but not yet called from any view).
+- [x] ~~**RevenueCat purchase UI**~~ — done. `RevenueCatStore` owns StoreKit via
+  `offerings()` / `purchase(package:)` / `restorePurchases()`, with
+  `logIn`/`logOut` tracking the Firebase uid. The old StoreKit-2
+  `SubscriptionStore` is deleted, so transactions are handled once.
+- [x] ~~**Sign-in UI**~~ — done. `SignInWithAppleButton` (Apple's own control, as
+  the guidelines require) drives `BackendAuth.prepare(_:)`/`complete(_:)`.
+  Purchases are gated behind sign-in so credits always have a Firebase uid to
+  land against. `syncBackend()` runs on auth change, purchase and restore.
+- [ ] **Local `CreditLedger` is now vestigial** for the managed provider: the
+  server ledger is authoritative. It is still used for the credit-history list
+  and for BYOK cost estimates. Consider hiding it on managed accounts so two
+  balances are not shown side by side.
 - [ ] **Account deletion** callable (Firestore purge + RevenueCat logout).
 - [ ] **Per-request rate limiting** beyond credit balance (e.g. per-uid quota),
   so a compromised token can't drain a balance in seconds.

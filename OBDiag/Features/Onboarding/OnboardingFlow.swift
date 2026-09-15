@@ -1,5 +1,4 @@
 import SwiftUI
-import StoreKit
 
 /// First-run experience: adaptive questionnaire, first vehicle setup and an
 /// optional subscription upsell with yearly billing recommended.
@@ -363,10 +362,8 @@ struct OnboardingFlow: View {
             subtitle: "Start free. Upgrade any time — credits refresh monthly."
         ) {
             VStack(spacing: 12) {
-                ForEach(env.subscriptions.subscriptionOffers) { product in
-                    if let offer = env.subscriptions.offer(for: product) {
-                        subscriptionCard(product: product, offer: offer)
-                    }
+                ForEach(env.subscriptions.subscriptionOffers) { offer in
+                    subscriptionCard(offer: offer)
                 }
 
                 if env.subscriptions.subscriptionOffers.isEmpty {
@@ -397,12 +394,12 @@ struct OnboardingFlow: View {
         }
     }
 
-    private func subscriptionCard(product: Product, offer: PlanOffer) -> some View {
+    private func subscriptionCard(offer: PlanOffer) -> some View {
         Button {
             Task {
                 isPurchasing = true
                 purchaseError = nil
-                let success = await env.subscriptions.purchase(product)
+                let success = await env.subscriptions.purchase(offer)
                 isPurchasing = false
                 if success { complete() }
                 else if let error = env.subscriptions.lastError { purchaseError = error }
@@ -420,10 +417,10 @@ struct OnboardingFlow: View {
                     }
                     Spacer()
                     VStack(alignment: .trailing, spacing: 2) {
-                        Text(product.displayPrice)
+                        Text(offer.displayPrice)
                             .font(.obHeadline)
                             .foregroundStyle(Palette.textPrimary)
-                        if let savings = env.subscriptions.savingsLabel(for: product) {
+                        if let savings = env.subscriptions.savingsLabel(for: offer) {
                             Text(savings)
                                 .font(.obMicro)
                                 .foregroundStyle(Palette.success)

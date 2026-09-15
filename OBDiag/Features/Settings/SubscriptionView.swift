@@ -1,5 +1,4 @@
 import SwiftUI
-import StoreKit
 
 /// Subscription management content: plan comparison, credit packs, purchase
 /// history. Presented as a sheet by `SubscriptionView` and pushed by
@@ -14,21 +13,33 @@ struct SubscriptionContent: View {
     var body: some View {
         ScrollView {
                 VStack(alignment: .leading, spacing: 20) {
-                    balanceHero
-                    if let banner {
-                        Text(banner)
-                            .font(.obCaption)
-                            .foregroundStyle(Palette.accent)
-                            .padding(12)
-                            .frame(maxWidth: .infinity, alignment: .leading)
-                            .panel(cornerRadius: 16)
+                    if env.auth.isSignedIn {
+                        balanceHero
+                        if let banner {
+                            Text(banner)
+                                .font(.obCaption)
+                                .foregroundStyle(Palette.accent)
+                                .padding(12)
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                                .panel(cornerRadius: 16)
+                        }
+                        periodPicker
+                        plans
+                        creditPacks
+                        creditsExplainer
+                        history
+                        footer
+                    } else if env.auth.state == .unconfigured {
+                        unavailableNotice
+                    } else {
+                        // Purchases are gated on sign-in: credits are granted
+                        // server-side against a Firebase uid, so there is nowhere
+                        // for an anonymous purchase to land.
+                        AccountRequiredView(
+                            reason: "Credits and subscriptions are tied to your OBDiag account, so sign in before buying."
+                        )
+                        creditsExplainer
                     }
-                    periodPicker
-                    plans
-                    creditPacks
-                    creditsExplainer
-                    history
-                    footer
                 }
                 .padding(18)
                 .padding(.bottom, 30)
@@ -115,7 +126,7 @@ struct SubscriptionContent: View {
     }
 
     private func planCard(_ tier: PlanTier) -> some View {
-        let product = product(for: tier, period: selectedPeriod)
+        let offer = offer(for: tier, period: selectedPeriod)
         let isCurrent = env.subscriptions.plan == tier
         return VStack(alignment: .leading, spacing: 12) {
             HStack(alignment: .top) {
@@ -136,10 +147,10 @@ struct SubscriptionContent: View {
                 }
                 Spacer()
                 VStack(alignment: .trailing, spacing: 2) {
-                    Text(product?.displayPrice ?? "—")
+                    Text(offer?.displayPrice ?? "—")
                         .font(.obHeadline)
                         .foregroundStyle(Palette.textPrimary)
-                    if selectedPeriod == .yearly, let savings = product.flatMap({ env.subscriptions.savingsLabel(for: $0) }) {
+                    if selectedPeriod == .yearly, let savings = offer.flatMap({ env.subscriptions.savingsLabel(for: $0) }) {
                         Text(savings).font(.obMicro).foregroundStyle(Palette.success)
                     }
                 }
@@ -162,13 +173,13 @@ struct SubscriptionContent: View {
             if isCurrent {
                 GlassSecondaryButton(title: "Current plan", systemImage: "checkmark") {}
                     .disabled(true)
-            } else if let product {
+            } else if let offer {
                 GlassActionButton(
                     title: "Get \(tier.title) · \(selectedPeriod.title)",
                     systemImage: "sparkles",
                     tint: tier == .pro ? Palette.purple : Palette.accent
                 ) {
-                    purchase(product)
+                    purchase(offer)
                 }
                 .disabled(isPurchasing)
             } else {
@@ -187,11 +198,27 @@ struct SubscriptionContent: View {
         )
     }
 
-    private func product(for tier: PlanTier, period: PlanOffer.Period) -> Product? {
-        let suffix = period == .yearly ? "yearly" : "monthly"
-        return env.subscriptions.subscriptionOffers.first { product in
-            StoreProduct.plan(for: product.id) == tier && product.id.contains(suffix)
+    private func offer(for tier: PlanTier, period: PlanOffer.Period) -> PlanOffer? {
+        env.subscriptions.subscriptionOffers.first { $0.tier == tier && $0.period == period }
+    }
+
+    /// Shown when the build has no backend credentials at all.
+    private var unavailableNotice: some View {
+        HStack(spacing: 10) {
+            Image(systemName: "exclamationmark.circle")
+                .foregroundStyle(Palette.amber)
+            VStack(alignment: .leading, spacing: 2) {
+                Text("Store unavailable in this build")
+                    .font(.obCallout)
+                    .foregroundStyle(Palette.textPrimary)
+                Text("Add GoogleService-Info.plist and the RevenueCat key to enable subscriptions.")
+                    .font(.obCaption)
+                    .foregroundStyle(Palette.textSecondary)
+            }
+            Spacer()
         }
+        .padding(14)
+        .panel(cornerRadius: 16)
     }
 
     // MARK: Credit packs
@@ -203,7 +230,7 @@ struct SubscriptionContent: View {
             if env.subscriptions.creditPacks.isEmpty {
                 HStack(spacing: 10) {
                     Image(systemName: "bag").foregroundStyle(Palette.textTertiary)
-                    Text(env.subscriptions.isLoadingProducts ? "Loading store…" : "Credit packs are unavailable in this build.")
+                    Text(env.subscriptions.isLoading ? "Loading store…" : "Credit packs are unavailable in this build.")
                         .font(.obCaption)
                         .foregroundStyle(Palette.textTertiary)
                     Spacer()
@@ -217,7 +244,7 @@ struct SubscriptionContent: View {
                             purchase(pack)
                         } label: {
                             VStack(alignment: .leading, spacing: 5) {
-                                Text("\(Format.credits(StoreProduct.credits(for: pack.id) ?? 0)) credits")
+                                Text(pack.title)
                                     .font(.obCallout.weight(.semibold))
                                     .foregroundStyle(Palette.textPrimary)
                                 Text(pack.displayPrice)
@@ -336,8 +363,10 @@ struct SubscriptionContent: View {
         VStack(spacing: 10) {
             GlassSecondaryButton(title: "Restore purchases", systemImage: "arrow.clockwise") {
                 Task {
-                    await env.subscriptions.restorePurchases()
-                    banner = "Purchases restored."
+                    let restored = await env.subscriptions.restorePurchases()
+                    banner = restored
+                        ? "Purchases restored."
+                        : (env.subscriptions.lastError ?? "Nothing to restore.")
                 }
             }
             Link(destination: URL(string: "https://apps.apple.com/account/subscriptions")!) {
@@ -345,7 +374,7 @@ struct SubscriptionContent: View {
                     .font(.obCaption)
                     .foregroundStyle(Palette.textTertiary)
             }
-            Text("Credits are an on-device convenience ledger for model usage. Subscriptions renew automatically unless cancelled at least 24 hours before the end of the period.")
+            Text("Credits are held on your OBDiag account and spent on model usage. Subscriptions renew automatically unless cancelled at least 24 hours before the end of the period.")
                 .font(.obMicro)
                 .foregroundStyle(Palette.textTertiary)
                 .multilineTextAlignment(.center)
@@ -354,19 +383,27 @@ struct SubscriptionContent: View {
 
     // MARK: Purchase
 
-    private func purchase(_ product: Product) {
+    private func purchase(_ offer: PlanOffer) {
         Task {
             isPurchasing = true
             banner = nil
-            let success = await env.subscriptions.purchase(product)
+            let success = await env.subscriptions.purchase(offer)
             isPurchasing = false
-            if success {
-                banner = product.id.contains("credits")
-                    ? "Credits added to your balance."
-                    : "You're on the \(StoreProduct.plan(for: product.id)?.title ?? "") plan. Credits refreshed."
-            } else if let error = env.subscriptions.lastError {
-                banner = error
-            }
+            banner = success
+                ? "You're on the \(offer.tier.title) plan. Credits refreshed."
+                : env.subscriptions.lastError
+        }
+    }
+
+    private func purchase(_ pack: CreditPack) {
+        Task {
+            isPurchasing = true
+            banner = nil
+            let success = await env.subscriptions.purchase(pack)
+            isPurchasing = false
+            banner = success
+                ? "Credits added to your balance."
+                : env.subscriptions.lastError
         }
     }
 }

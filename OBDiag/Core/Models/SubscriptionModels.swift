@@ -1,10 +1,13 @@
 import Foundation
 
-// MARK: - StoreKit catalog
+// MARK: - Store catalog
 
-/// Product identifiers. Keep in sync with `Resources/StoreKit/OBDiag.storekit`
-/// and App Store Connect.
-enum StoreProduct {
+/// Product identifiers. Keep in sync with `Resources/StoreKit/OBDiag.storekit`,
+/// App Store Connect, and `server/functions/src/storeProducts.ts`.
+///
+/// Named `StoreCatalog` rather than `StoreProduct` because RevenueCat exports a
+/// `StoreProduct` class; two types with the same name in one file is a trap.
+enum StoreCatalog {
     static let plusMonthly = "com.obdiag.plus.monthly"
     static let plusYearly = "com.obdiag.plus.yearly"
     static let proMonthly = "com.obdiag.pro.monthly"
@@ -25,6 +28,16 @@ enum StoreProduct {
         }
     }
 
+    /// Plan for a RevenueCat entitlement id. Mirrors `planForEntitlement` in
+    /// `server/functions/src/storeProducts.ts`, so the app and the server agree
+    /// on what "plus" and "pro" mean.
+    static func plan(forEntitlement id: String) -> PlanTier? {
+        let normalized = id.lowercased()
+        if normalized.contains("pro") { return .pro }
+        if normalized.contains("plus") { return .plus }
+        return nil
+    }
+
     static func credits(for productID: String) -> Int? {
         switch productID {
         case credits500: return 500
@@ -35,7 +48,7 @@ enum StoreProduct {
     }
 }
 
-/// Presentable subscription offer, used by onboarding upsell and settings.
+/// Presentable subscription offer, used by the onboarding upsell and settings.
 struct PlanOffer: Identifiable, Hashable {
     var id: String
     var tier: PlanTier
@@ -50,6 +63,16 @@ struct PlanOffer: Identifiable, Hashable {
     }
 
     var title: String { "\(tier.title) · \(period.title)" }
+}
+
+/// Presentable consumable credit pack.
+struct CreditPack: Identifiable, Hashable {
+    /// The App Store product identifier.
+    var id: String
+    var credits: Int
+    var displayPrice: String
+
+    var title: String { "\(Format.credits(credits)) credits" }
 }
 
 /// Features that can be gated by plan; used to present honest upsells.
@@ -77,9 +100,9 @@ enum PremiumFeature: String {
     var message: String {
         switch self {
         case .plusModels:
-            return "Deeper-reasoning models like Claude Sonnet and GPT-4o come with Plus."
+            return "Deeper-reasoning models come with Plus, and burn credits more per answer."
         case .maxModels:
-            return "Frontier models such as Claude Opus and GPT-5 are available on Pro."
+            return "Frontier models are available on Pro for the hardest, most ambiguous faults."
         case .creditPacks:
             return "Top up your balance any time with a credit pack."
         }

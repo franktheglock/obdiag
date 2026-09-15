@@ -17,6 +17,7 @@ struct SettingsView: View {
     var body: some View {
         NavigationStack {
             List {
+                accountSection
                 subscriptionSection
 
                 Section("Assistant") {
@@ -139,6 +140,30 @@ struct SettingsView: View {
     }
 
     // MARK: Subscription card
+
+    /// Sign-in entry point, so an account can be created without going through
+    /// the paywall first.
+    @ViewBuilder
+    private var accountSection: some View {
+        switch env.auth.state {
+        case .unconfigured:
+            EmptyView()
+        case .signedIn:
+            Section("Account") {
+                AccountSummaryView()
+                    .listRowInsets(EdgeInsets())
+                    .listRowBackground(Color.clear)
+            }
+        case .signedOut:
+            Section("Account") {
+                AccountRequiredView(
+                    reason: "Sign in to use the OBDiag assistant and sync your credits across devices."
+                )
+                .listRowInsets(EdgeInsets())
+                .listRowBackground(Color.clear)
+            }
+        }
+    }
 
     private var subscriptionSection: some View {
         Section {

@@ -35,11 +35,13 @@ your products until they exist in App Store Connect.
   Store Connect app, and the RevenueCat app. The repo ships `com.obdiag.app`;
   change it in one place and re-run `xcodegen generate` if you want your own.
 
-> **Not yet wired end to end.** The RevenueCat purchase *UI* is still on the
-> remaining-work list (`docs/SHIPPING.md` §4). Completing this guide gets the
-> backend, entitlements and product catalogue correct, but the app will not show
-> a paywall or a restore button until that UI is built. Setting it up now is
-> still the right order — it unblocks that work.
+The purchase UI is built: the plans screen and onboarding upsell read
+RevenueCat offerings, credit packs are one-time purchases, and there is a
+restore button. Purchases are gated behind Sign in with Apple, because credits
+are granted server-side against a Firebase uid — an anonymous purchase would
+have nowhere to land. So the first thing to verify after this setup is that
+sign-in works.
+
 
 ---
 

@@ -21,9 +21,12 @@ final class BackendAuth: NSObject {
     private(set) var isSigningIn = false
     private(set) var lastError: String?
 
+    /// Called whenever the signed-in user changes, with the new uid (`nil` when
+    /// signed out). Lets RevenueCat's `appUserID` track the Firebase uid, which
+    /// is what lets a purchase webhook be matched to an account.
+    var onUserChanged: ((String?) -> Void)?
+
     private var currentNonce: String?
-    private var signInContinuation: CheckedContinuation<Void, Error>?
-    private var presentationAnchor: ASPresentationAnchor?
 
     override init() {
         super.init()
@@ -40,6 +43,7 @@ final class BackendAuth: NSObject {
             Task { @MainActor in
                 guard let self else { return }
                 self.state = user.map { .signedIn(uid: $0.uid) } ?? .signedOut
+                self.onUserChanged?(user?.uid)
             }
         }
     }
@@ -67,42 +71,60 @@ final class BackendAuth: NSObject {
 
     // MARK: Sign in / out
 
-    /// Sign in with Apple needs an anchor to present from. Callers should pass
-    /// `keyWindowAnchor()`; it returns nil when there is no window scene, which
-    /// means there is no UI to present from.
-    static func keyWindowAnchor() -> ASPresentationAnchor? {
-        let scenes = UIApplication.shared.connectedScenes.compactMap { $0 as? UIWindowScene }
-        let windows = scenes.flatMap(\.windows)
-        if let key = windows.first(where: \.isKeyWindow) { return key }
-        if let first = windows.first { return first }
-        // iOS 26 deprecates constructing a window without a scene, so an anchor
-        // can only be derived from a real scene.
-        return scenes.first.map { ASPresentationAnchor(windowScene: $0) }
-    }
-
-    func signInWithApple(anchor: ASPresentationAnchor) async throws {
-        guard BackendConfig.isFirebaseConfigured else { throw BackendError.notConfigured }
-        guard !isSigningIn else { return }
-
-        isSigningIn = true
-        lastError = nil
-        presentationAnchor = anchor
-        defer { isSigningIn = false }
-
+    /// Configures the Sign in with Apple request.
+    ///
+    /// Call from `SignInWithAppleButton`'s `onRequest`. The nonce is generated
+    /// here and its SHA-256 goes to Apple; the raw value is held until
+    /// completion, where Firebase needs it to verify the returned token.
+    func prepare(_ request: ASAuthorizationAppleIDRequest) {
         let nonce = Self.randomNonce()
         currentNonce = nonce
-
-        let request = ASAuthorizationAppleIDProvider().createRequest()
         request.requestedScopes = [.fullName, .email]
         request.nonce = Self.sha256(nonce)
+    }
 
-        let controller = ASAuthorizationController(authorizationRequests: [request])
-        controller.delegate = self
-        controller.presentationContextProvider = self
+    /// Completes sign-in from `SignInWithAppleButton`'s `onCompletion`.
+    ///
+    /// Returns whether the user is now signed in. A cancellation is not an
+    /// error and is not surfaced.
+    @discardableResult
+    func complete(_ result: Result<ASAuthorization, Error>) async -> Bool {
+        isSigningIn = true
+        lastError = nil
+        defer { isSigningIn = false }
 
-        try await withCheckedThrowingContinuation { continuation in
-            signInContinuation = continuation
-            controller.performRequests()
+        switch result {
+        case .failure(let error):
+            if let authError = error as? ASAuthorizationError, authError.code == .canceled {
+                return false
+            }
+            lastError = error.localizedDescription
+            return false
+
+        case .success(let authorization):
+            guard
+                let credential = authorization.credential as? ASAuthorizationAppleIDCredential,
+                let tokenData = credential.identityToken,
+                let identityToken = String(data: tokenData, encoding: .utf8),
+                let nonce = currentNonce
+            else {
+                lastError = "Apple did not return an identity token. Please try again."
+                return false
+            }
+            currentNonce = nil
+
+            let firebaseCredential = OAuthProvider.appleCredential(
+                withIDToken: identityToken,
+                rawNonce: nonce,
+                fullName: credential.fullName
+            )
+            do {
+                try await Auth.auth().signIn(with: firebaseCredential)
+                return true
+            } catch {
+                lastError = error.localizedDescription
+                return false
+            }
         }
     }
 
@@ -117,19 +139,6 @@ final class BackendAuth: NSObject {
         // removal is handled by a dedicated callable in a later release.
         try await user.delete()
         state = .signedOut
-    }
-
-    private func finishSignIn(_ result: Result<Void, Error>) {
-        let continuation = signInContinuation
-        signInContinuation = nil
-        currentNonce = nil
-        switch result {
-        case .success:
-            continuation?.resume()
-        case .failure(let error):
-            lastError = error.localizedDescription
-            continuation?.resume(throwing: error)
-        }
     }
 
     // MARK: Nonce helpers
@@ -157,59 +166,5 @@ final class BackendAuth: NSObject {
 
     private static func sha256(_ input: String) -> String {
         SHA256.hash(data: Data(input.utf8)).map { String(format: "%02x", $0) }.joined()
-    }
-}
-
-// MARK: - Authorization callbacks
-
-extension BackendAuth: ASAuthorizationControllerDelegate {
-    func authorizationController(
-        controller: ASAuthorizationController,
-        didCompleteWithAuthorization authorization: ASAuthorization
-    ) {
-        guard let credential = authorization.credential as? ASAuthorizationAppleIDCredential,
-              let tokenData = credential.identityToken,
-              let idToken = String(data: tokenData, encoding: .utf8),
-              let nonce = currentNonce else {
-            finishSignIn(.failure(BackendError.malformedResponse("Apple returned no identity token.")))
-            return
-        }
-
-        let firebaseCredential = OAuthProvider.appleCredential(
-            withIDToken: idToken,
-            rawNonce: nonce,
-            fullName: credential.fullName
-        )
-
-        Task {
-            do {
-                try await Auth.auth().signIn(with: firebaseCredential)
-                finishSignIn(.success(()))
-            } catch {
-                finishSignIn(.failure(error))
-            }
-        }
-    }
-
-    func authorizationController(
-        controller: ASAuthorizationController,
-        didCompleteWithError error: Error
-    ) {
-        // A user cancellation is not an error worth surfacing.
-        if let authError = error as? ASAuthorizationError, authError.code == .canceled {
-            finishSignIn(.failure(CancellationError()))
-            return
-        }
-        finishSignIn(.failure(error))
-    }
-}
-
-extension BackendAuth: ASAuthorizationControllerPresentationContextProviding {
-    func presentationAnchor(for controller: ASAuthorizationController) -> ASPresentationAnchor {
-        if let presentationAnchor { return presentationAnchor }
-        // Defensive: `signInWithApple(anchor:)` sets the anchor before calling
-        // performRequests(), so this only runs if that invariant is broken.
-        if let fallback = Self.keyWindowAnchor() { return fallback }
-        preconditionFailure("Sign in with Apple was started without a window scene")
     }
 }
