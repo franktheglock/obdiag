@@ -36,6 +36,13 @@ targets:
           - "Resources/StoreKit/**"
           # Referenced by CODE_SIGN_ENTITLEMENTS, not a bundled resource.
           - "OBDiag.entitlements"
+          # Per-developer, gitignored config. Listing them here would bake
+          # whichever files the generating machine had into project.pbxproj,
+          # so a clone without them fails with "Build input file cannot be
+          # found". The "Copy local config" script below bundles them instead,
+          # only when they exist.
+          - "Resources/GoogleService-Info.plist"
+          - "Resources/Secrets.plist"
     dependencies:
       # Firebase Auth provides Sign in with Apple; App Check attests that
       # requests come from a genuine build of this app.
@@ -49,6 +56,19 @@ targets:
       - package: RevenueCat
         product: RevenueCat
     postBuildScripts:
+      # Bundle the gitignored config files if the developer has them. Absent
+      # files are skipped, so a fresh clone builds and the app falls back to
+      # the demo assistant with no store. Runs every build (no dependency
+      # analysis) so a file added later is picked up without regenerating.
+      - name: Copy local config
+        basedOnDependencyAnalysis: false
+        script: |
+          for f in GoogleService-Info.plist Secrets.plist; do
+            src="$SRCROOT/OBDiag/Resources/$f"
+            if [ -f "$src" ]; then
+              cp "$src" "$TARGET_BUILD_DIR/$UNLOCALIZED_RESOURCES_FOLDER_PATH/$f"
+            fi
+          done
       - name: Strip extended attributes
         basedOnDependencyAnalysis: false
         script: xattr -cr "$TARGET_BUILD_DIR/$WRAPPER_NAME" 2>/dev/null || true
