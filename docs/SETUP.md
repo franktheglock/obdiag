@@ -124,31 +124,33 @@ because personal teams cannot sign for it (see `server/README.md`).
 
 ### 1.4 Create Firestore
 
-**Decide the edition before creating the database — it is awkward to change.**
+This project uses **Standard edition** with the `(default)` database.
+`server/firebase.json` already matches that shape, the Cloud Functions call
+`getFirestore(app)` which addresses `(default)`, and `--edition` defaults to
+`standard` on the CLI. No code changes needed.
 
-This project is set up for **Standard edition** with the `(default)` database.
-`server/firebase.json` matches that shape, and the Cloud Functions use
-`getFirestore(app)`, which addresses `(default)`.
-
-An **Enterprise edition** database must have a *named* id — it can never be
-`(default)` — so choosing it means three extra changes: `edition`, `database`
-and `location` in the `firestore` block of `firebase.json`, and
-`FIRESTORE_DATABASE_ID` set for the functions. Nothing here needs Enterprise's
-features (multi-database, MongoDB compatibility), so Standard is the simpler
-and recommended choice; the code supports either.
-
-Check what already exists before creating anything, and pick a location
-colocated with your functions region:
+Pick a location colocated with your functions region (default `us-central1`):
 
 ```sh
-npx -y firebase-tools@latest firestore:databases:list
 npx -y firebase-tools@latest firestore:locations
+npx -y firebase-tools@latest firestore:databases:create "(default)" \
+  --location <location-id> --edition standard
 ```
 
-With Standard edition and `(default)`, the database is created for you on first
-deploy — you do not need a create command. The security rules in
-`server/firestore.rules` deny all client access, which is correct here because
-no client can reach Firestore anyway (the app does not link the Firestore SDK).
+Creating the database on the Console works equally well and is the easier route
+if you are not sure of the location id — pick **Standard edition** when prompted.
+The location is a create-time decision and cannot be changed afterwards.
+
+The security rules in `server/firestore.rules` deny all client access, which is
+correct here because no client can reach Firestore anyway (the app does not link
+the Firestore SDK).
+
+> **If you ever switch to Enterprise edition**, it must have a *named* id — it
+> can never be `(default)`. That also means adding `edition`, `database` and
+> `location` to the `firestore` block of `server/firebase.json` and setting
+> `FIRESTORE_DATABASE_ID` for the functions, otherwise they will address a
+> database that does not exist and fail at runtime rather than at deploy. The
+> code supports either edition; nothing here needs Enterprise's features.
 
 ### 1.5 Upgrade to Blaze
 
