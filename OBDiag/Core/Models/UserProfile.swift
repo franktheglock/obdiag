@@ -35,15 +35,6 @@ enum PlanTier: String, Codable, CaseIterable, Identifiable, Sendable {
         }
     }
 
-    /// Spending multiplier — lower plans burn credits faster.
-    var creditMultiplier: Double {
-        switch self {
-        case .free: return 1.5
-        case .plus: return 1.2
-        case .pro: return 1.0
-        }
-    }
-
     var features: [String] {
         switch self {
         case .free:
@@ -115,22 +106,33 @@ struct CreditTransaction: Identifiable, Codable, Hashable, Sendable {
 
 /// Converts model usage into credits.
 ///
-///   credits = ceil( usd_cost ÷ $0.001 × plan_multiplier ), minimum 1
-///   usd_cost = reported provider cost, or
-///              prompt_tokens × input_price + completion_tokens × output_price
+///   credits = max(1, ceil( tokens ÷ 1000 × tier_multiplier ))
 ///
-/// Plan multipliers: Free ×1.5, Plus ×1.2, Pro ×1.0. Local and demo models are
-/// free. Prices come from the live model catalog the app fetches from the
-/// provider, so a credit always tracks real model cost.
+/// The multiplier depends on the *model*, not the plan: Flash bills at a third
+/// of the base rate, Plus at the base rate, and Max at 5×. Free and local
+/// models never bill. So a credit is a predictable unit of model work rather
+/// than a hidden dollar figure.
 enum CreditPricing {
-    /// 1 credit ≈ $0.001 of model usage, scaled by plan.
-    static let usdPerCredit: Double = 0.001
+    /// 1 credit = 1,000 tokens at the base (Plus) rate.
+    static let tokensPerCredit: Double = 1_000
     static let minimumCharge = 1
 
-    static func credits(for usage: TokenUsage, model: AIModel, plan: PlanTier) -> Int {
-        let usd = usage.costUSD > 0 ? usage.costUSD : model.estimatedCost(for: usage)
-        guard usd > 0 else { return 0 }
-        let raw = usd / usdPerCredit * plan.creditMultiplier
+    /// How much a model tier bills relative to the base rate.
+    static func multiplier(for tier: ModelTier) -> Double {
+        switch tier {
+        case .flash: return 0.33
+        case .plus: return 1
+        case .max: return 5
+        }
+    }
+
+    static func credits(for usage: TokenUsage, model: AIModel) -> Int {
+        credits(tokens: usage.totalTokens, tier: model.tier)
+    }
+
+    static func credits(tokens: Int, tier: ModelTier) -> Int {
+        guard tokens > 0 else { return 0 }
+        let raw = Double(tokens) / tokensPerCredit * multiplier(for: tier)
         return max(minimumCharge, Int(ceil(raw)))
     }
 
@@ -139,7 +141,7 @@ enum CreditPricing {
         let model = AIModel.fallbackCatalog[0] // Gemini 3.8 Flash
         let usage = TokenUsage(promptTokens: 3_000, completionTokens: 800, totalTokens: 3_800)
         let usd = model.estimatedCost(for: usage)
-        return (credits(for: usage, model: model, plan: plan), usd, usage.totalTokens)
+        return (credits(for: usage, model: model), usd, usage.totalTokens)
     }
 }
 

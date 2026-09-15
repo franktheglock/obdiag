@@ -120,8 +120,19 @@ anonymousPurchases/{appUserId}_{eventId}  # purchases made before sign-in
 
 ## Cost model
 
-1 credit ≈ **$0.001** of model usage, scaled by a plan multiplier (Free ×1.5,
-Plus ×1.2, Pro ×1.0). So a request costing $0.01 charges 15 / 12 / 10 credits.
+Credits are token-pegged, not dollar-pegged:
 
-See [`SHIPPING.md`](SHIPPING.md) for the margin analysis — **the current Pro
-credit allowance is not profitable** at any Apple commission tier.
+```
+credits = max(1, ceil( total_tokens ÷ 1,000 × MODEL_TIER_MULTIPLIER[tier] ))
+                   flash 0.33 · plus 1 · max 5
+```
+
+So a credit is a predictable unit of model work — 1,000 tokens at the base
+rate — and the tier multiplier encodes what the model costs to run rather than
+exposing provider pricing to the user. The provider's own USD cost is still
+recorded on each ledger entry for margin reporting, but it never determines the
+charge.
+
+The plan decides the monthly allowance and the highest model tier, not the burn
+rate. See [`SHIPPING.md`](SHIPPING.md) for the margin analysis — **the current
+allowances are ~5× too generous, and one model is in the wrong tier.**

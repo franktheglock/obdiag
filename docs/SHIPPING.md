@@ -34,49 +34,81 @@ will be handled twice.
 
 ---
 
-## 2. The margin problem — decide before setting prices
+## 2. Credit economics — the formula is right, the allowances are not
 
-1 credit ≈ $0.001 of model usage, scaled by the plan multiplier (Free ×1.5,
-Plus ×1.2, Pro ×1.0). So a plan granting *N* credits costs
-`N ÷ multiplier × $0.001` per month. Compare that to revenue **after Apple's
-cut** (15% Small Business Program, 30% standard).
+Billing is token-pegged (`server/functions/src/plans.ts`, mirrored in
+`CreditPricing` on the client):
 
-| Plan | Price | Credits | Model cost/mo | Margin @15% | Margin @30% |
-| --- | --- | --- | --- | --- | --- |
-| Free | $0 | 150 | $0.100 | — | — |
-| Plus monthly | $4.99 | 2,500 | $2.083 | $2.16 (51%) | $1.41 (40%) |
-| Plus yearly | $39.99/yr ($3.33/mo) | 2,500 | $2.083 | $0.75 (26%) | $0.25 (11%) |
-| Pro monthly | $9.99 | 8,000 | **$8.00** | $0.49 (6%) | **−$1.01** ❌ |
-| Pro yearly | $79.99/yr ($6.67/mo) | 8,000 | **$8.00** | **−$2.33** ❌ | **−$3.33** ❌ |
-| 500 credits | $4.99 | 500 | $0.50 | $3.74 (88%) | — |
-| 1,500 credits | $12.99 | 1,500 | $1.50 | $9.54 (86%) | — |
-| 4,000 credits | $29.99 | 4,000 | $4.00 | $21.49 (84%) | — |
+```
+credits = max(1, ceil( tokens ÷ 1,000 × MODEL_TIER_MULTIPLIER[tier] ))
+                     flash 0.33 · plus 1 · max 5
+```
 
-**Consumables are healthy. Pro subscriptions lose money, and both yearly plans
-are thin-to-negative.** The credit allowances are roughly 2–3× too generous
-relative to price.
+The tier ladder is well calibrated. Max models cost roughly 5× a Plus model to
+run and bill at 5×, so both land at nearly the same cost per credit
+(~$0.0035–0.0037). Reference request throughout: 3,000 prompt + 800 completion
+tokens (the app's own worked example).
 
-### Recommended fix
-
-Target model cost ≤ 40% of net revenue. Adjust in **one place** —
-`server/functions/src/plans.ts` — and mirror in
-`OBDiag/Core/Models/UserProfile.swift` for display.
-
-| Plan | Price | Credits | Cost/mo | Cost ratio |
+| Model | Tier | Cost | Credits | $/credit |
 | --- | --- | --- | --- | --- |
-| Plus monthly | $6.99 | 2,000 | $1.67 | 28% |
-| Pro monthly | $14.99 | 4,000 | $4.00 | 31% |
-| Plus yearly | $59.99/yr | 2,000/mo | $1.67 | ~34% |
-| Pro yearly | $129.99/yr | 4,000/mo | $4.00 | ~35% |
+| deepseek-v4.1-flash | flash | $0.0009 | 2 | $0.00046 |
+| gpt-5.6-luna | flash | $0.0016 | 2 | $0.00078 |
+| gemini-3.8-flash | flash | $0.0053 | 2 | $0.00263 |
+| grok-4.3 | plus | $0.0057 | 4 | $0.00144 |
+| glm-5.3 | plus | $0.0077 | 4 | $0.00193 |
+| grok-4.6 | plus | $0.0108 | 4 | $0.00270 |
+| gemini-3.5-flash | plus | $0.0117 | 4 | $0.00293 |
+| claude-sonnet-5 | plus | $0.0140 | 4 | $0.00350 |
+| kimi-k3 | plus | $0.0161 | 4 | $0.00404 |
+| **claude-opus-5** | **plus** | **$0.0350** | **4** | **$0.00875** |
+| gpt-6-astra | max | $0.0700 | 19 | $0.00368 |
 
-Also note the **free tier costs $0.10/user/month** — at 100k monthly actives
-that's $10k/month with no revenue. Consider lowering the free grant or gating it
-behind a one-time purchase.
+### Fix 1 — `claude-opus-5` is in the wrong tier (bug)
 
-The server is the enforcement point, so allowances can be tuned without an app
-release — but the client displays them, so keep the two in sync.
+Its prompt price is exactly $5.00/M, and the rule is `perMillion <= 5 → plus`,
+so it lands in Plus. But it costs **$0.00875 per credit — 2.4× more than the
+Max-tier models**. That is an inversion: the cheaper plan's best model costs you
+more per credit than the expensive plan's.
 
----
+Because a Plus user can select it, it sets the price floor for the whole Plus
+plan. One-line fix in `server/functions/src/models.ts` (the catalog already
+supports it):
+
+```ts
+{ id: "anthropic/claude-opus-5", …, tierOverride: "max" },
+```
+
+### Fix 2 — the allowances are ~5× too generous
+
+Priced against the **worst model each plan permits** (users will pick it), at
+40% of net revenue after a 15% Apple cut:
+
+| Plan | Price | Worst case $/credit | Affordable/mo | Current |
+| --- | --- | --- | --- | --- |
+| Plus | $4.99 | $0.00404 (kimi-k3, after Fix 1) | **~420** | 2,500 |
+| Plus | $4.99 | $0.00875 (opus-5, unfixed) | ~193 | 2,500 |
+| Pro | $9.99 | $0.00368 (gpt-6-astra) | **~920** | 8,000 |
+
+Allow ~520 / 1,150 credits for a 50% cost ratio. At the current 2,500 / 8,000,
+Plus and Pro cost roughly **$10 and $29 per month** in model usage respectively.
+
+Either cut the allowances to ~500 / ~1,000, or raise prices to match the
+allowances — you cannot keep both.
+
+### Why margin now floats
+
+Credits are no longer pegged to dollars, so gross margin depends on model mix,
+and within-tier spread is large: Flash models range from $0.00046 to $0.00263
+per credit (5.7×) because a 3-step ladder cannot track a 6× cost range. Ceiling
+rounding and the 1-credit minimum work in your favour — cheap models subsidise
+expensive ones — but you must price against the worst case, not the average.
+
+Every settled request already records the provider's own `usage.costUSD` on the
+ledger, so realised margin is measurable per model. Watch it: if the mix drifts
+toward the top of each tier, margin compresses silently.
+
+Also note the **free tier costs ~$0.10/user/month** (150 credits, worst-case
+Flash). At 100k monthly actives that is ~$10k/month with no revenue.
 
 ## 3. Store compliance (required before submission)
 

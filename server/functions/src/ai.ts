@@ -34,7 +34,7 @@ import {
   RequestError,
 } from "./request";
 import { OpenRouterError, streamChatCompletion } from "./openrouter";
-import { creditsForUSD, estimateCredits, estimateTokens, planConfig } from "./plans";
+import { creditsForTokens, estimateCredits, estimateTokens, planConfig } from "./plans";
 import { publicCatalog } from "./models";
 
 /** One streamed frame: a raw OpenRouter SSE payload, forwarded verbatim. */
@@ -120,9 +120,7 @@ export const chat = onCall(
 
     const promptTokens = estimateTokens(String(sanitized.estimatedPromptChars));
     const estimate = estimateCredits({
-      plan,
-      promptPricePerToken: model.promptPricePerToken,
-      completionPricePerToken: model.completionPricePerToken,
+      tier: model.tier,
       promptTokens,
       maxOutputTokens: config.maxOutputTokens,
     });
@@ -169,16 +167,12 @@ export const chat = onCall(
         }
       }
 
-      const actualCredits =
-        usage && usage.costUSD > 0
-          ? creditsForUSD(usage.costUSD, plan)
-          : usage
-            ? creditsForUSD(
-                usage.promptTokens * model.promptPricePerToken +
-                  usage.completionTokens * model.completionPricePerToken,
-                plan,
-              )
-            : 0;
+      // Billing is token-based: tokens × the model tier's multiplier. The
+      // provider's own USD cost is kept on the ledger for margin reporting but
+      // never used to compute the charge.
+      const actualCredits = usage
+        ? creditsForTokens(usage.totalTokens, model.tier)
+        : 0;
 
       const settled = await settleReservation(uid, {
         reservationId,
@@ -210,9 +204,7 @@ export const chat = onCall(
       try {
         await settleReservation(uid, {
           reservationId,
-          actualCredits: usage && usage.costUSD > 0
-            ? creditsForUSD(usage.costUSD, plan)
-            : 0,
+          actualCredits: usage ? creditsForTokens(usage.totalTokens, model.tier) : 0,
           modelId: model.id,
           note: streamed
             ? `${model.name} · interrupted`

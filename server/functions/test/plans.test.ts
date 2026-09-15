@@ -1,13 +1,14 @@
 import { describe, expect, it } from "vitest";
 import {
-  creditsForUSD,
+  creditsForTokens,
   estimateCredits,
   estimateTokens,
   isPlanTier,
+  MODEL_TIER_MULTIPLIER,
   MODEL_TIER_RANK,
   planConfig,
   tierForPrice,
-  USD_PER_CREDIT,
+  TOKENS_PER_CREDIT,
 } from "../src/plans";
 
 describe("tierForPrice", () => {
@@ -34,59 +35,66 @@ describe("tierForPrice", () => {
   });
 });
 
-describe("creditsForUSD", () => {
-  it("converts at $0.001 per credit", () => {
-    // $0.01 = 10 base credits; Pro has a 1.0 multiplier.
-    expect(creditsForUSD(0.01, "pro")).toBe(10);
-    expect(USD_PER_CREDIT).toBe(0.001);
+describe("creditsForTokens", () => {
+  it("bills 1 credit per 1,000 tokens at the base rate", () => {
+    expect(TOKENS_PER_CREDIT).toBe(1_000);
+    expect(creditsForTokens(1_000, "plus")).toBe(1);
+    expect(creditsForTokens(5_000, "plus")).toBe(5);
   });
 
-  it("applies the plan multiplier so cheaper plans burn faster", () => {
-    const usd = 0.01;
-    expect(creditsForUSD(usd, "free")).toBe(15); // ×1.5
-    expect(creditsForUSD(usd, "plus")).toBe(12); // ×1.2
-    expect(creditsForUSD(usd, "pro")).toBe(10); // ×1.0
+  it("bills Flash at a third of the base rate", () => {
+    expect(MODEL_TIER_MULTIPLIER.flash).toBe(0.33);
+    // 3,000 tokens → 3 × 0.33 = 0.99 → ceil 1
+    expect(creditsForTokens(3_000, "flash")).toBe(1);
+    // 10,000 tokens → 10 × 0.33 = 3.3 → ceil 4
+    expect(creditsForTokens(10_000, "flash")).toBe(4);
+  });
+
+  it("bills Max at 5x the base rate", () => {
+    expect(MODEL_TIER_MULTIPLIER.max).toBe(5);
+    expect(creditsForTokens(1_000, "max")).toBe(5);
+    expect(creditsForTokens(3_800, "max")).toBe(19);
   });
 
   it("rounds up and enforces a minimum charge", () => {
-    expect(creditsForUSD(0.0001, "pro")).toBe(1); // minimum, not 0.1
-    expect(creditsForUSD(0.0015, "pro")).toBe(2); // ceil(1.5)
+    // A tiny Flash request would floor to 0 without the minimum.
+    expect(creditsForTokens(100, "flash")).toBe(1);
+    // 1,500 tokens on Plus = 1.5 → 2
+    expect(creditsForTokens(1_500, "plus")).toBe(2);
   });
 
-  it("charges nothing for zero or negative cost", () => {
-    expect(creditsForUSD(0, "pro")).toBe(0);
-    expect(creditsForUSD(-5, "pro")).toBe(0);
-    expect(creditsForUSD(Number.NaN, "pro")).toBe(0);
+  it("charges nothing for zero or negative tokens", () => {
+    expect(creditsForTokens(0, "plus")).toBe(0);
+    expect(creditsForTokens(-100, "plus")).toBe(0);
+    expect(creditsForTokens(Number.NaN, "plus")).toBe(0);
+  });
+
+  it("orders tiers by cost: flash < plus < max for the same tokens", () => {
+    const tokens = 10_000;
+    expect(creditsForTokens(tokens, "flash")).toBeLessThan(
+      creditsForTokens(tokens, "plus"),
+    );
+    expect(creditsForTokens(tokens, "plus")).toBeLessThan(
+      creditsForTokens(tokens, "max"),
+    );
   });
 });
 
 describe("estimateCredits", () => {
-  it("reserves based on max output, so it never under-reserves output", () => {
-    const model = { promptPricePerToken: 2e-6, completionPricePerToken: 10e-6 };
-    const cheap = estimateCredits({
-      plan: "pro",
-      ...model,
-      promptTokens: 1_000,
-      maxOutputTokens: 100,
-    });
-    const expensive = estimateCredits({
-      plan: "pro",
-      ...model,
-      promptTokens: 1_000,
-      maxOutputTokens: 4_000,
-    });
-    expect(expensive).toBeGreaterThan(cheap);
+  it("reserves prompt plus max output so the hold covers the real charge", () => {
+    const tier = "plus" as const;
+    const hold = estimateCredits({ tier, promptTokens: 1_000, maxOutputTokens: 2_000 });
+    const actual = creditsForTokens(2_500, tier);
+    expect(hold).toBeGreaterThanOrEqual(actual);
   });
 
-  it("scales the reservation with the plan multiplier", () => {
-    const base = {
-      promptPricePerToken: 0,
-      completionPricePerToken: 10e-6,
-      promptTokens: 0,
-      maxOutputTokens: 1_000,
-    };
-    expect(estimateCredits({ ...base, plan: "free" })).toBeGreaterThan(
-      estimateCredits({ ...base, plan: "pro" }),
+  it("scales with the tier multiplier", () => {
+    const base = { promptTokens: 1_000, maxOutputTokens: 1_000 };
+    expect(estimateCredits({ ...base, tier: "flash" })).toBeLessThan(
+      estimateCredits({ ...base, tier: "plus" }),
+    );
+    expect(estimateCredits({ ...base, tier: "plus" })).toBeLessThan(
+      estimateCredits({ ...base, tier: "max" }),
     );
   });
 });
@@ -103,15 +111,12 @@ describe("plan gating", () => {
     expect(planConfig("pro").maxModelTier).toBe("max");
   });
 
-  it("gives higher plans more credits and a smaller multiplier", () => {
+  it("gives higher plans more credits", () => {
     expect(planConfig("free").monthlyCredits).toBeLessThan(
       planConfig("plus").monthlyCredits,
     );
     expect(planConfig("plus").monthlyCredits).toBeLessThan(
       planConfig("pro").monthlyCredits,
-    );
-    expect(planConfig("free").creditMultiplier).toBeGreaterThan(
-      planConfig("pro").creditMultiplier,
     );
   });
 

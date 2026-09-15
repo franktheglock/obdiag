@@ -15,7 +15,8 @@ final class BackendAccountStore {
     private(set) var lifetimeGranted: Int = 0
     private(set) var lifetimeSpent: Int = 0
     private(set) var monthlyCredits: Int = 0
-    private(set) var creditMultiplier: Double = 1
+    /// Billing multiplier per model tier, served by the backend.
+    private(set) var modelTierMultipliers: [String: Double] = [:]
 
     private(set) var isLoading = false
     private(set) var lastError: String?
@@ -30,7 +31,7 @@ final class BackendAccountStore {
         var lifetimeGranted: Int?
         var lifetimeSpent: Int?
         var monthlyCredits: Int?
-        var creditMultiplier: Double?
+        var modelTierMultipliers: [String: Double]?
     }
 
     func configure(client: CallableClient) {
@@ -89,7 +90,7 @@ final class BackendAccountStore {
         lifetimeGranted = summary.lifetimeGranted ?? lifetimeGranted
         lifetimeSpent = summary.lifetimeSpent ?? lifetimeSpent
         monthlyCredits = summary.monthlyCredits ?? monthlyCredits
-        creditMultiplier = summary.creditMultiplier ?? creditMultiplier
+        modelTierMultipliers = summary.modelTierMultipliers ?? modelTierMultipliers
         lastRefreshed = Date()
     }
 }

@@ -459,7 +459,7 @@ final class ChatEngine {
         conversations.addUsage(usage, to: conversationID)
         // The managed service debits server-side, so don't double-charge locally.
         guard !client.isLocal, !client.isServerMetered, usage.totalTokens > 0 else { return }
-        let cost = CreditPricing.credits(for: usage, model: model, plan: currentPlan)
+        let cost = CreditPricing.credits(for: usage, model: model)
         guard cost > 0 else { return }
         credits.spend(cost, note: "\(model.name) · \(usage.totalTokens) tokens", modelID: model.id)
     }

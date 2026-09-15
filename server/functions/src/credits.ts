@@ -21,7 +21,7 @@
 import { FieldValue, Timestamp } from "firebase-admin/firestore";
 import { db } from "./firebase";
 import { COLLECTIONS, LIMITS } from "./config";
-import { PlanTier, isPlanTier, planConfig } from "./plans";
+import { PlanTier, isPlanTier, planConfig, MODEL_TIER_MULTIPLIER } from "./plans";
 
 export type CreditReason =
   | "welcome"
@@ -548,7 +548,7 @@ export async function accountSummary(uid: string) {
       ]),
     ),
     monthlyCredits: planConfig(account.plan).monthlyCredits,
-    creditMultiplier: planConfig(account.plan).creditMultiplier,
+    modelTierMultipliers: MODEL_TIER_MULTIPLIER,
   };
 }
 

@@ -76,7 +76,7 @@ struct SubscriptionContent: View {
                     stat("Renewal", renewal.replacingOccurrences(of: "Renews ", with: ""))
                 }
             }
-            Text("1 credit ≈ $0.001 of model usage, adjusted by your plan's burn rate. See the breakdown below. Local and demo models are free.")
+            Text("1 credit = 1,000 tokens. Flash models bill at 0.33×, Plus at 1× and Max at 5×. Local and demo models are free.")
                 .font(.obMicro)
                 .foregroundStyle(Palette.textTertiary)
         }
@@ -241,20 +241,16 @@ struct SubscriptionContent: View {
 
     private var creditsExplainer: some View {
         VStack(alignment: .leading, spacing: 12) {
-            SectionHeader(title: "How credits work", subtitle: "1 credit ≈ $0.001 of model usage")
+            SectionHeader(title: "How credits work", subtitle: "1 credit = 1,000 tokens")
 
             VStack(alignment: .leading, spacing: 10) {
                 explainerRow(
                     icon: "function",
-                    text: "credits = ceil( model cost ÷ $0.001 × plan multiplier )"
+                    text: "credits = ceil( tokens ÷ 1,000 × model tier multiplier )"
                 )
                 explainerRow(
-                    icon: "chart.line.downtrend.xyaxis",
-                    text: "Model cost = prompt tokens × input price + completion tokens × output price, using the live per-token prices of the model you picked."
-                )
-                explainerRow(
-                    icon: "percent",
-                    text: "Plan multipliers: Free ×1.5 · Plus ×1.2 × Pro ×1.0. Higher plans burn fewer credits for the same answer."
+                    icon: "gauge.with.dots.needle.33percent",
+                    text: "Flash models bill at 0.33×, Plus at 1×, and Max at 5×. The multiplier reflects what the model costs to run."
                 )
                 explainerRow(
                     icon: "bolt.slash",
@@ -273,8 +269,7 @@ struct SubscriptionContent: View {
     }
 
     private func exampleText(_ example: (credits: Int, usd: Double, tokens: Int)) -> String {
-        let usd = String(format: "%.4f", example.usd)
-        return "Example: a \(Format.credits(example.tokens))-token answer on Gemini 3.8 Flash costs about $ \(usd) of model usage → \(example.credits) credits on the \(env.subscriptions.plan.title) plan."
+        "Example: a \(Format.credits(example.tokens))-token answer on Gemini 3.8 Flash (Flash tier) costs \(Format.credits(example.credits)) credits."
     }
 
     private func explainerRow(icon: String, text: String) -> some View {
