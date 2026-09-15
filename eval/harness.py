@@ -16,11 +16,22 @@ Run `python3 eval/run.py --help` for usage.
 from __future__ import annotations
 
 import json
+import os
 import re
 import urllib.error
 import urllib.request
 from dataclasses import dataclass, field
 from typing import Any, Optional
+
+# python.org Python builds ship without a wired-up CA bundle, so urllib fails
+# with CERTIFICATE_VERIFY_FAILED on a machine where curl works fine. Point
+# OpenSSL at certifi when it's installed and nothing has been chosen already.
+try:  # pragma: no cover - environment dependent
+    import certifi  # type: ignore
+
+    os.environ.setdefault("SSL_CERT_FILE", certifi.where())
+except Exception:  # pragma: no cover
+    pass
 
 OPENROUTER_URL = "https://openrouter.ai/api/v1/chat/completions"
 
