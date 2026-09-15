@@ -23,6 +23,18 @@ xcodebuild -project OBDiag.xcodeproj -scheme OBDiag \
   -destination 'platform=iOS Simulator,name=iPhone 17 Pro' build
 ```
 
+On a fresh clone, Xcode must fetch the Swift packages before it can build (it
+will report `Missing package product 'FirebaseCore'` until it has). Either open
+the project and let Xcode resolve, or run:
+
+```sh
+xcodebuild -resolvePackageDependencies -project OBDiag.xcodeproj -scheme OBDiag
+```
+
+That pulls the Firebase iOS SDK, which is a large repo (~250 MB) and can take a
+while on a slow connection. `Package.resolved` is committed, so the versions are
+pinned once fetched.
+
 The app runs without hardware: onboarding and the dashboard both offer a
 built-in demo adapter that speaks the real ELM327 text protocol.
 

@@ -8,6 +8,3 @@ xcuserdata/
 # Eval secrets and reports (see the `eval` branch)
 .eval/
 __pycache__/
-
-# SPM pins are generated on first resolve against project.yml
-OBDiag.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/Package.resolved
