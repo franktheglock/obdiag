@@ -16,6 +16,7 @@
 		14EF20DC267C798D7B1CB792 /* AIModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4A0796971C2150860F240CF5 /* AIModel.swift */; };
 		1739F837CC8B21CE2577280B /* GlobalConnectionBanner.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7213EC96447DF8BA94920BB3 /* GlobalConnectionBanner.swift */; };
 		17733C652E817780859C5CDB /* BackendConfig.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8B14C0411A48DA832927DAFE /* BackendConfig.swift */; };
+		17FD5B755DC8BDDCB4752890 /* Secrets.plist in Resources */ = {isa = PBXBuildFile; fileRef = 17A2E524436029380B4359A8 /* Secrets.plist */; };
 		19E64F65BE5343A9B5DD58F8 /* Theme.swift in Sources */ = {isa = PBXBuildFile; fileRef = 69A129585ECEFCD0B2F394CB /* Theme.swift */; };
 		1DCB15275B73AB6A36DCE84E /* BackendAuth.swift in Sources */ = {isa = PBXBuildFile; fileRef = 474969CD8A0403DEF48CFB08 /* BackendAuth.swift */; };
 		1F506DE4D881D363661A8017 /* EditVehicleView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99D8CEC5F1AF2F1BDE34AADC /* EditVehicleView.swift */; };
@@ -78,6 +79,7 @@
 		D1C7F89CD410AFAE60B9821B /* SearchModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = BC7330376F14685F515F60CA /* SearchModels.swift */; };
 		D589D2D980BC1784BE912B0C /* OBDSession.swift in Sources */ = {isa = PBXBuildFile; fileRef = CB7B5AE3B9E5822EE4845464 /* OBDSession.swift */; };
 		D66649CE560F39820B7F27D7 /* SearchService.swift in Sources */ = {isa = PBXBuildFile; fileRef = DBC09BC54877323F815327E6 /* SearchService.swift */; };
+		DA9B50C12496AB8344F5424B /* Secrets.example.plist in Resources */ = {isa = PBXBuildFile; fileRef = 7A5FD77EBFAC1FCC7E5644DC /* Secrets.example.plist */; };
 		DB325A8D601253830F1FA7DF /* VehicleCatalogClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = D20B56C5752B9F97053F01D3 /* VehicleCatalogClient.swift */; };
 		DF91F9072785801048092061 /* Keychain.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0AA04640A5F5ECC28E252DB6 /* Keychain.swift */; };
 		E6192A4F1F6F44B7588E78D6 /* DemoOBDConnection.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1847AF32E8DCE9AE8884622A /* DemoOBDConnection.swift */; };
@@ -102,7 +104,8 @@
 		0405ECDC22AF20135695FA5E /* Formatters.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Formatters.swift; sourceTree = "<group>"; };
 		0AA04640A5F5ECC28E252DB6 /* Keychain.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Keychain.swift; sourceTree = "<group>"; };
 		0D6C1984774B1C62F6F158A5 /* SensorsGrid.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SensorsGrid.swift; sourceTree = "<group>"; };
-		0F77521C6BC8C14B2E3601FD /* OBDiag.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = OBDiag.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		0F77521C6BC8C14B2E3601FD /* OBDiag.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = OBDiag.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		17A2E524436029380B4359A8 /* Secrets.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Secrets.plist; sourceTree = "<group>"; };
 		1847AF32E8DCE9AE8884622A /* DemoOBDConnection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DemoOBDConnection.swift; sourceTree = "<group>"; };
 		1946C0F8F69B00630402C2DA /* PromptBuilder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PromptBuilder.swift; sourceTree = "<group>"; };
 		1A0EDD6DB98CFF72A998B6DE /* Haptics.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Haptics.swift; sourceTree = "<group>"; };
@@ -139,6 +142,7 @@
 		735BADFD37A96DE8831F34B3 /* GoogleService-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = "GoogleService-Info.plist"; sourceTree = "<group>"; };
 		75C1F64ABB640607E76C344E /* SearchSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SearchSettingsView.swift; sourceTree = "<group>"; };
 		79B7E6CE5BF3F96B9CC9F3CF /* AboutView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AboutView.swift; sourceTree = "<group>"; };
+		7A5FD77EBFAC1FCC7E5644DC /* Secrets.example.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Secrets.example.plist; sourceTree = "<group>"; };
 		7E32879BB2582EA4F0CD87ED /* Extensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Extensions.swift; sourceTree = "<group>"; };
 		83D31AD6CDFA028E5D5CECDB /* BackendAccountStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BackendAccountStore.swift; sourceTree = "<group>"; };
 		84E4180936FD3F5E0376CE21 /* GarageView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GarageView.swift; sourceTree = "<group>"; };
@@ -324,6 +328,8 @@
 			children = (
 				ABFB8BCC76E420B08BD01B76 /* Assets.xcassets */,
 				735BADFD37A96DE8831F34B3 /* GoogleService-Info.plist */,
+				7A5FD77EBFAC1FCC7E5644DC /* Secrets.example.plist */,
+				17A2E524436029380B4359A8 /* Secrets.plist */,
 			);
 			path = Resources;
 			sourceTree = "<group>";
@@ -512,6 +518,7 @@
 						TestTargetID = 5AC8BAC09C9D5C5CCEF15468;
 					};
 					5AC8BAC09C9D5C5CCEF15468 = {
+						DevelopmentTeam = "";
 						ProvisioningStyle = Automatic;
 					};
 				};
@@ -547,6 +554,8 @@
 			files = (
 				59CC6E03C0DCB5FC947A57E4 /* Assets.xcassets in Resources */,
 				BC934C7863C691E3F526D431 /* GoogleService-Info.plist in Resources */,
+				DA9B50C12496AB8344F5424B /* Secrets.example.plist in Resources */,
+				17FD5B755DC8BDDCB4752890 /* Secrets.plist in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -717,7 +726,6 @@
 				CODE_SIGN_ENTITLEMENTS = OBDiag/OBDiag.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = GS367542MP;
 				ENABLE_DEBUG_DYLIB = NO;
 				ENABLE_PREVIEWS = NO;
 				GENERATE_INFOPLIST_FILE = YES;
@@ -824,7 +832,6 @@
 				CODE_SIGN_ENTITLEMENTS = "";
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = GS367542MP;
 				ENABLE_DEBUG_DYLIB = NO;
 				ENABLE_PREVIEWS = NO;
 				GENERATE_INFOPLIST_FILE = YES;

@@ -12,3 +12,12 @@ __pycache__/
 # Eval run reports are generated output
 eval/reports/
 
+# Per-developer configuration. Templates are committed; the real files are not.
+# See docs/SETUP.md.
+OBDiag/Resources/GoogleService-Info.plist
+OBDiag/Resources/Secrets.plist
+
+# Local emulator secrets for the Cloud Functions
+server/functions/.env
+server/functions/.env.*
+!server/functions/.env.example

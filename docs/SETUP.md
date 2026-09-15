@@ -71,11 +71,14 @@ point the CLI and app at it.
    ```
 
    Then `xcodegen generate` — the project globs `OBDiag/`, so the plist is
-   bundled automatically. No `project.yml` edit needed.
+   bundled automatically. No `project.yml` edit needed. **Run `xcodegen
+   generate` after adding it**, or the new file won't be in the project.
 
-   The file contains no secret (it ships inside the app), so committing it is
-   normal. Keep it out of a public repo if you'd rather not advertise the
-   project id.
+   `GoogleService-Info.plist` is **gitignored**, so it stays on your machine. It
+   holds no secret, but it is per-project, and keeping it out means a clone never
+   points at someone else's backend. It is also the single source of truth for
+   the project id — `BackendConfig.projectID` reads `PROJECT_ID` from it, so
+   there is no id to keep in sync in the source.
 
 3. Point the app and CLI at your project:
 
@@ -249,16 +252,24 @@ notifies your backend. **Webhooks require RevenueCat's Pro plan.**
 
 | Key | Where | Goes to |
 | --- | --- | --- |
-| Public SDK key (`appl_…`) | Project → API keys | `BackendConfig.revenueCatAPIKey` |
+| Public SDK key (`appl_…`) | Project → API keys | `OBDiag/Resources/Secrets.plist` |
 | Secret API key (`sk_…`) | same page | `REVENUECAT_API_KEY` Firebase secret |
 
-The public key is set in `OBDiag/Core/Backend/BackendConfig.swift`. It is not a
-secret — it identifies the app rather than authenticating a user, and is
-designed to ship inside the binary. The secret key must never enter the app.
+The public key goes in a **gitignored** file. An iOS app has no runtime `.env` —
+a Swift `let` is compiled into the binary — so a bundled file is the equivalent:
 
-Set it there rather than in Info.plist: `INFOPLIST_KEY_<name>` build settings
-only populate Apple's own Info.plist keys, so a custom key is silently dropped
-from the generated plist however you set it.
+```sh
+cp OBDiag/Resources/Secrets.example.plist OBDiag/Resources/Secrets.plist
+# fill in RevenueCatTestAPIKey (test_…) and/or RevenueCatAppStoreAPIKey (appl_…)
+xcodegen generate    # so the new file is bundled
+```
+
+Debug prefers the Test Store key and Release prefers the App Store key, falling
+back to whichever is present, so supplying one is enough. The key is public by
+design, but keeping it out of the repository means a clone never points at
+someone else's RevenueCat project.
+
+The secret key must never enter the app — it belongs in Secret Manager only.
 
 The app configures RevenueCat with the Firebase uid as the `appUserID`, which is
 what lets a purchase webhook be matched to the right account.
