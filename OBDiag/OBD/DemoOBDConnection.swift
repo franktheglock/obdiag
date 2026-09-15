@@ -304,7 +304,7 @@ struct DemoVehicleSimulator {
             return [UInt8(volts >> 8), UInt8(volts & 0xFF)]
         case 0x43:
             let load = Int(engineLoad * 255 / 100)
-            return [UInt8(load), 0x00]
+            return [UInt8(load >> 8), UInt8(load & 0xFF)]
         case 0x44:
             let ratio = Int(1.0 * 32768)
             return [UInt8(ratio >> 8), UInt8(ratio & 0xFF)]

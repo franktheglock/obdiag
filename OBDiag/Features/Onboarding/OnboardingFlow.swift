@@ -35,7 +35,9 @@ struct OnboardingFlow: View {
                         .padding(.bottom, 24)
                 }
                 .dismissKeyboardOnScroll()
-                footer
+                // A bar, so long steps scroll under the Continue button with
+                // the system edge effect instead of stopping above it.
+                .safeAreaBar(edge: .bottom) { footer }
             }
         }
         .sheet(isPresented: $showAddVehicle, onDismiss: {
@@ -60,7 +62,7 @@ struct OnboardingFlow: View {
                         goBack()
                     } label: {
                         Image(systemName: "chevron.left")
-                            .font(.system(size: 15, weight: .semibold))
+                            .font(.subheadline.weight(.semibold))
                             .frame(width: 38, height: 38)
                             .contentShape(Circle())
                     }
@@ -69,7 +71,7 @@ struct OnboardingFlow: View {
                 } else {
                     HStack(spacing: 9) {
                         Image(systemName: "bolt.car.fill")
-                            .font(.system(size: 18, weight: .bold))
+                            .font(.body.weight(.bold))
                             .foregroundStyle(Palette.accent)
                         Text("OBDiag")
                             .font(.obTitle2)
@@ -137,7 +139,6 @@ struct OnboardingFlow: View {
         .padding(.horizontal, 22)
         .padding(.top, 12)
         .padding(.bottom, 10)
-        .bottomFade()
     }
 
     // MARK: Content
@@ -163,7 +164,8 @@ struct OnboardingFlow: View {
                     .fill(Palette.accent.opacity(0.15))
                     .frame(width: 112, height: 112)
                 Image(systemName: "bolt.car.fill")
-                    .font(.system(size: 46, weight: .medium))
+                    .font(.largeTitle.weight(.medium))
+                    .imageScale(.large)
                     .foregroundStyle(Palette.accent)
             }
             .padding(.top, 18)
@@ -179,7 +181,7 @@ struct OnboardingFlow: View {
             VStack(alignment: .leading, spacing: 14) {
                 featureRow(icon: "gauge.with.dots.needle.67percent", title: "Live sensors", detail: "RPM, coolant, fuel trims, O₂ sensors and more.")
                 featureRow(icon: "exclamationmark.triangle.fill", title: "Fault codes", detail: "Stored, pending and permanent codes, decoded instantly.")
-                featureRow(icon: "sparkles", title: "AI diagnosis", detail: "Answers with causes, step-by-step checks, parts and videos.")
+                featureRow(icon: "text.magnifyingglass", title: "AI diagnosis", detail: "Answers with causes, step-by-step checks, parts and videos.")
             }
             .padding(.top, 4)
 
@@ -197,7 +199,7 @@ struct OnboardingFlow: View {
                     .fill(Palette.accent.opacity(0.14))
                     .frame(width: 42, height: 42)
                 Image(systemName: icon)
-                    .font(.system(size: 17, weight: .semibold))
+                    .font(.body.weight(.semibold))
                     .foregroundStyle(Palette.accent)
             }
             VStack(alignment: .leading, spacing: 2) {
@@ -326,7 +328,7 @@ struct OnboardingFlow: View {
                 if let addedVehicleName {
                     HStack(spacing: 12) {
                         Image(systemName: "checkmark.seal.fill")
-                            .font(.system(size: 22))
+                            .font(.title2)
                             .foregroundStyle(Palette.success)
                         VStack(alignment: .leading, spacing: 2) {
                             Text(addedVehicleName)
@@ -434,7 +436,7 @@ struct OnboardingFlow: View {
                 ForEach(offer.tier.features.prefix(3), id: \.self) { feature in
                     HStack(spacing: 7) {
                         Image(systemName: "checkmark")
-                            .font(.system(size: 10, weight: .bold))
+                            .font(.caption2.weight(.bold))
                             .foregroundStyle(Palette.success)
                         Text(feature)
                             .font(.obCaption)
@@ -446,7 +448,7 @@ struct OnboardingFlow: View {
             .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
-        .panel(cornerRadius: 20, tint: offer.period == .yearly ? Palette.accent.opacity(0.10) : nil, interactive: true)
+        .panel(tint: offer.period == .yearly ? Palette.accent.opacity(0.10) : nil)
         .overlay(
             RoundedRectangle(cornerRadius: 14, style: .continuous)
                 .strokeBorder(offer.period == .yearly ? Palette.accent.opacity(0.6) : Palette.stroke, lineWidth: 1)
@@ -463,13 +465,13 @@ struct OnboardingFlow: View {
             }
             ForEach(features.prefix(4), id: \.self) { feature in
                 HStack(spacing: 7) {
-                    Image(systemName: "checkmark").font(.system(size: 10, weight: .bold)).foregroundStyle(Palette.success)
+                    Image(systemName: "checkmark").font(.caption2.weight(.bold)).foregroundStyle(Palette.success)
                     Text(feature).font(.obCaption).foregroundStyle(Palette.textSecondary)
                 }
             }
         }
         .padding(15)
-        .panel(cornerRadius: 14, tint: isSelected ? Palette.accent.opacity(0.10) : nil)
+        .panel(tint: isSelected ? Palette.accent.opacity(0.10) : nil)
     }
 
     // MARK: Building blocks
@@ -493,7 +495,7 @@ struct OnboardingFlow: View {
         Button(action: action) {
             HStack(spacing: 13) {
                 Image(systemName: icon)
-                    .font(.system(size: 17, weight: .semibold))
+                    .font(.body.weight(.semibold))
                     .foregroundStyle(isSelected ? Palette.accent : Palette.textSecondary)
                     .frame(width: 26)
                 VStack(alignment: .leading, spacing: 2) {
@@ -508,20 +510,20 @@ struct OnboardingFlow: View {
                 }
                 Spacer(minLength: 4)
                 Image(systemName: isSelected ? "checkmark.circle.fill" : "circle")
-                    .font(.system(size: 19))
+                    .font(.body)
                     .foregroundStyle(isSelected ? Palette.accent : Palette.textTertiary.opacity(0.5))
             }
             .padding(14)
             .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
-        .panel(cornerRadius: 18, tint: isSelected ? Palette.accent.opacity(0.15) : nil, interactive: true)
+        .panel(tint: isSelected ? Palette.accent.opacity(0.15) : nil)
     }
 
     private func benefitRow(_ text: String) -> some View {
         HStack(alignment: .top, spacing: 9) {
             Image(systemName: "checkmark.circle.fill")
-                .font(.system(size: 13))
+                .font(.footnote)
                 .foregroundStyle(Palette.success)
                 .padding(.top, 1)
             Text(text)

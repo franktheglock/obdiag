@@ -18,6 +18,7 @@ struct AIChatView: View {
     @State private var showCamera = false
     @State private var isLoadingPhotos = false
     @FocusState private var composerFocused: Bool
+    @Namespace private var composerNamespace
 
     private var conversation: Conversation? {
         guard let conversationID else { return nil }
@@ -38,26 +39,14 @@ struct AIChatView: View {
                 }
             }
             .transparentSheetContent()
-            .safeAreaInset(edge: .bottom) {
+            // The composer is a bar: the system gives it the scroll edge effect
+            // under it and keeps it above the keyboard, so no painted scrim.
+            .safeAreaBar(edge: .bottom) {
                 if env.chat.isConfigured { composer }
             }
-            // One continuous backdrop: the app gradient plus a bottom scrim that
-            // lives in the background layer, so it runs under the composer and
-            // the floating tab bar instead of hard-cutting at the tab bar edge.
-            .background {
-                ZStack(alignment: .bottom) {
-                    AppBackground()
-                    LinearGradient(
-                        colors: [Palette.base.opacity(0), Palette.base.opacity(0.85)],
-                        startPoint: .top,
-                        endPoint: .bottom
-                    )
-                    .frame(height: 220)
-                    .allowsHitTesting(false)
-                }
-                .ignoresSafeArea()
-            }
+            .background { AppBackground() }
             .navigationTitle(title)
+            .navigationSubtitle(env.chat.selectedModel.name)
             .navigationBarTitleDisplayMode(.inline)
             .toolbar { toolbarContent }
             .sheet(isPresented: $showHistory) {
@@ -124,50 +113,7 @@ struct AIChatView: View {
 
     @ToolbarContentBuilder
     private var toolbarContent: some ToolbarContent {
-        ToolbarItem(placement: .principal) {
-            VStack(spacing: 2) {
-                Text(title)
-                    .font(.subheadline.weight(.semibold))
-                    .foregroundStyle(Palette.textPrimary)
-                    .lineLimit(1)
-
-                Button {
-                    Haptics.tap()
-                    showModelPicker = true
-                } label: {
-                    HStack(spacing: 4) {
-                        Image(systemName: env.chat.selectedModel.tier.icon)
-                            .font(.system(size: 10, weight: .semibold))
-                        Text(env.chat.selectedModel.name)
-                            .font(.caption)
-                            .lineLimit(1)
-                        Image(systemName: "chevron.down")
-                            .font(.system(size: 9, weight: .semibold))
-                    }
-                }
-                .buttonStyle(.glass)
-                .controlSize(.mini)
-                .accessibilityLabel("Model: \(env.chat.selectedModel.name). Change model.")
-                .accessibilityHint("Opens the model picker")
-            }
-            .frame(maxWidth: 240)
-        }
-
         ToolbarItemGroup(placement: .topBarTrailing) {
-            Button {
-                showVehiclePicker = true
-            } label: {
-                Image(systemName: "car.2")
-            }
-            .accessibilityLabel("Switch vehicle")
-
-            Button {
-                showHistory = true
-            } label: {
-                Image(systemName: "clock.arrow.circlepath")
-            }
-            .accessibilityLabel("Conversation history")
-
             Button {
                 Haptics.tap()
                 conversationID = env.startFreshConversation()
@@ -176,6 +122,27 @@ struct AIChatView: View {
                 Image(systemName: "square.and.pencil")
             }
             .accessibilityLabel("New conversation")
+
+            Menu {
+                Button {
+                    showHistory = true
+                } label: {
+                    Label("History", systemImage: "clock.arrow.circlepath")
+                }
+                Button {
+                    showModelPicker = true
+                } label: {
+                    Label("Change model", systemImage: env.chat.selectedModel.tier.icon)
+                }
+                Button {
+                    showVehiclePicker = true
+                } label: {
+                    Label("Switch vehicle", systemImage: "car.2")
+                }
+            } label: {
+                Image(systemName: "ellipsis")
+            }
+            .accessibilityLabel("Conversation options")
         }
     }
 
@@ -202,7 +169,9 @@ struct AIChatView: View {
                 .padding(.bottom, 8)
             }
             .dismissKeyboardOnScroll()
-            .onChange(of: messages.count) { _, _ in
+            .simultaneousGesture(TapGesture().onEnded { composerFocused = false })
+            .onChange(of: messages.count) { _, count in
+                guard count > 0 else { return }
                 scrollToBottom(proxy, animated: true)
             }
             .onChange(of: messages.last?.text.count ?? 0) { _, _ in
@@ -222,56 +191,58 @@ struct AIChatView: View {
         }
     }
 
+    /// Quiet start: a heading, one line of context, and the suggestions as
+    /// plain rows in a single card. No hero icon, no pills.
     private var chatEmptyState: some View {
-        VStack(spacing: 10) {
-            Image(systemName: "sparkles")
-                .font(.system(size: 44, weight: .light))
-                .foregroundStyle(Palette.accent)
-                .padding(.bottom, 4)
+        VStack(alignment: .leading, spacing: 14) {
+            VStack(alignment: .leading, spacing: 4) {
+                Text("Ask about your car")
+                    .font(.title2.weight(.semibold))
+                    .foregroundStyle(Palette.textPrimary)
+                Text(env.obd.isConnected
+                     ? (env.obd.hasFaults
+                        ? "\(env.obd.dtcs.count) fault code\(env.obd.dtcs.count == 1 ? "" : "s") and live data are included."
+                        : "Live data is included.")
+                     : "Answers use your vehicle, its fault codes and live data.")
+                    .font(.subheadline)
+                    .foregroundStyle(Palette.textSecondary)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+            .padding(.horizontal, 4)
 
-            Text("AI diagnostic assistant")
-                .font(.title2.weight(.semibold))
-                .foregroundStyle(Palette.textPrimary)
-
-            Text(env.obd.isConnected
-                 ? (env.obd.hasFaults
-                    ? "\(env.obd.dtcs.count) fault code\(env.obd.dtcs.count == 1 ? "" : "s") and live sensor data are ready as context."
-                    : "Live sensor data is ready as context.")
-                 : "Ask anything about your car. Answers use your vehicle profile, fault codes and live data, and cite sources when researching.")
-                .font(.subheadline)
-                .foregroundStyle(Palette.textSecondary)
-                .multilineTextAlignment(.center)
-                .fixedSize(horizontal: false, vertical: true)
-                .frame(maxWidth: 330)
-
-            VStack(spacing: 8) {
-                ForEach(Self.suggestions, id: \.self) { suggestion in
+            VStack(spacing: 0) {
+                ForEach(Array(Self.suggestions.enumerated()), id: \.element) { index, suggestion in
                     Button {
                         Haptics.tap()
                         send(suggestion)
                     } label: {
                         HStack(spacing: 10) {
-                            Image(systemName: "sparkle")
-                                .font(.system(size: 13, weight: .semibold))
-                                .foregroundStyle(Palette.accent)
                             Text(suggestion)
                                 .font(.body)
                                 .foregroundStyle(Palette.textPrimary)
                                 .multilineTextAlignment(.leading)
-                            Spacer(minLength: 0)
+                            Spacer(minLength: 8)
+                            Image(systemName: "arrow.up.right")
+                                .font(.footnote.weight(.semibold))
+                                .foregroundStyle(Palette.textTertiary)
                         }
                         .padding(.horizontal, 16)
-                        .padding(.vertical, 12)
+                        .padding(.vertical, 13)
                         .frame(maxWidth: .infinity, alignment: .leading)
+                        .contentShape(Rectangle())
                     }
-                    .buttonStyle(.glass)
+                    .buttonStyle(.plain)
+                    if index < Self.suggestions.count - 1 {
+                        Divider().overlay(Palette.stroke)
+                    }
                 }
             }
-            .padding(.top, 8)
-            .frame(maxWidth: 420)
+            .padding(.vertical, 2)
+            .panel()
         }
+        .frame(maxWidth: 480)
         .frame(maxWidth: .infinity)
-        .padding(.top, 30)
+        .padding(.top, 8)
     }
 
     private static let suggestions = [
@@ -283,57 +254,67 @@ struct AIChatView: View {
 
     // MARK: Composer
 
+    /// Every glass element in the composer shares one container, so the
+    /// system renders them in a single pass and they can merge and morph as
+    /// warnings appear or the send button changes state.
     private var composer: some View {
-        VStack(spacing: 8) {
-            if !pendingAttachments.isEmpty {
-                attachmentStrip
-            }
-            if showsVisionWarning {
-                visionWarning
-            }
-            if showsLowCreditWarning, !env.chat.isGenerating {
-                lowCreditWarning
-            }
-            if env.chat.isGenerating, !env.chat.activeToolCalls.isEmpty {
-                liveToolStrip
-            }
-            HStack(alignment: .bottom, spacing: 8) {
-                attachButton
-
-                TextField("Ask about your car…", text: $composerText, axis: .vertical)
-                    .font(.obBody)
-                    .lineLimit(1...6)
-                    .focused($composerFocused)
-                    .padding(.horizontal, 15)
-                    .padding(.vertical, 11)
-                    .glassEffect(.regular, in: .rect(cornerRadius: 22))
-                    .onSubmit { send() }
-
-                Button {
-                    if env.chat.isGenerating {
-                        env.chat.stop()
-                    } else {
-                        send()
-                    }
-                } label: {
-                    Image(systemName: env.chat.isGenerating ? "stop.fill" : "arrow.up")
-                        .font(.system(size: 16, weight: .bold))
-                        .foregroundStyle(Palette.base)
-                        .frame(width: 44, height: 44)
-                        .contentShape(Circle())
+        GlassEffectContainer(spacing: 10) {
+            VStack(spacing: 8) {
+                if !pendingAttachments.isEmpty {
+                    attachmentStrip
                 }
-                .buttonStyle(.plain)
-                .glassEffect(
-                    .regular.tint(sendEnabled ? Palette.accent : Color.white.opacity(0.10)).interactive(),
-                    in: .circle
-                )
-                .disabled(!sendEnabled)
-                .accessibilityLabel(env.chat.isGenerating ? "Stop generating" : "Send message")
+                if showsVisionWarning {
+                    visionWarning
+                        .glassEffectID("vision", in: composerNamespace)
+                }
+                if showsLowCreditWarning, !env.chat.isGenerating {
+                    lowCreditWarning
+                        .glassEffectID("credits", in: composerNamespace)
+                }
+                if env.chat.isGenerating, !env.chat.activeToolCalls.isEmpty {
+                    liveToolStrip
+                }
+                // One glass field with the controls inside it, like Messages:
+                // no glass-on-glass, one shape to read.
+                HStack(alignment: .bottom, spacing: 4) {
+                    attachButton
+
+                    TextField("Ask about your car", text: $composerText, axis: .vertical)
+                        .font(.obBody)
+                        .lineLimit(1...6)
+                        .focused($composerFocused)
+                        .padding(.vertical, 10)
+                        .onSubmit { send() }
+
+                    Button {
+                        if env.chat.isGenerating {
+                            env.chat.stop()
+                        } else {
+                            send()
+                        }
+                    } label: {
+                        Image(systemName: env.chat.isGenerating ? "stop.fill" : "arrow.up")
+                            .font(.subheadline.weight(.bold))
+                            .foregroundStyle(.white)
+                            .frame(width: 32, height: 32)
+                            .background(sendEnabled ? Palette.accent : Palette.textTertiary.opacity(0.35), in: Circle())
+                            .frame(width: 40, height: 40)
+                            .contentShape(Circle())
+                    }
+                    .buttonStyle(.plain)
+                    .disabled(!sendEnabled)
+                    .accessibilityLabel(env.chat.isGenerating ? "Stop generating" : "Send message")
+                }
+                .padding(.horizontal, 4)
+                .padding(.vertical, 2)
+                .glassEffect(.regular, in: .rect(cornerRadius: 24))
+                .glassEffectID("composer", in: composerNamespace)
             }
         }
         .padding(.horizontal, 14)
         .padding(.top, 8)
         .padding(.bottom, 6)
+        .animation(.smooth(duration: 0.25), value: sendEnabled)
     }
 
     // MARK: Attachments
@@ -367,15 +348,14 @@ struct AIChatView: View {
                     ProgressView().controlSize(.small)
                 } else {
                     Image(systemName: pendingAttachments.isEmpty ? "plus" : "plus.circle.fill")
-                        .font(.system(size: 17, weight: .semibold))
+                        .font(.body.weight(.semibold))
                         .foregroundStyle(pendingAttachments.isEmpty ? Palette.textSecondary : Palette.accent)
                 }
             }
-            .frame(width: 44, height: 44)
+            .frame(width: 40, height: 40)
             .contentShape(Circle())
         }
         .buttonStyle(.plain)
-        .glassEffect(.regular.interactive(), in: .circle)
         .accessibilityLabel("Add a photo to your message")
     }
 
@@ -389,7 +369,7 @@ struct AIChatView: View {
                             removePendingAttachment(attachment)
                         } label: {
                             Image(systemName: "xmark.circle.fill")
-                                .font(.system(size: 16))
+                                .font(.callout)
                                 .foregroundStyle(.white, Color.black.opacity(0.6))
                         }
                         .buttonStyle(.plain)
@@ -414,7 +394,7 @@ struct AIChatView: View {
     private var visionWarning: some View {
         HStack(spacing: 8) {
             Image(systemName: "eye.slash")
-                .font(.system(size: 12, weight: .semibold))
+                .font(.caption.weight(.semibold))
                 .foregroundStyle(Palette.amber)
             Text("\(env.chat.selectedModel.name) can't view images.")
                 .font(.obMicro)
@@ -425,7 +405,7 @@ struct AIChatView: View {
             }
             .font(.obMicro.weight(.semibold))
             .buttonStyle(.glass)
-            .controlSize(.mini)
+            .controlSize(.small)
         }
         .padding(.horizontal, 11)
         .padding(.vertical, 7)
@@ -449,7 +429,7 @@ struct AIChatView: View {
     private var lowCreditWarning: some View {
         HStack(spacing: 8) {
             Image(systemName: "exclamationmark.circle.fill")
-                .font(.system(size: 12, weight: .semibold))
+                .font(.caption.weight(.semibold))
                 .foregroundStyle(Palette.amber)
             Text("\(Format.credits(env.creditBalance)) credits left")
                 .font(.obMicro)
@@ -458,7 +438,7 @@ struct AIChatView: View {
             Button("Top up") { showPaywall = true }
                 .font(.obMicro.weight(.semibold))
                 .buttonStyle(.glass)
-                .controlSize(.mini)
+                .controlSize(.small)
         }
         .padding(.horizontal, 11)
         .padding(.vertical, 7)
@@ -512,10 +492,10 @@ struct AIChatView: View {
                 ForEach(env.chat.activeToolCalls) { call in
                     HStack(spacing: 6) {
                         if call.status == .running {
-                            ProgressView().controlSize(.mini)
+                            ProgressView().controlSize(.small)
                         } else {
                             Image(systemName: call.systemImage)
-                                .font(.system(size: 10, weight: .bold))
+                                .font(.caption2.weight(.bold))
                                 .foregroundStyle(call.status == .failed ? Palette.amber : Palette.success)
                         }
                         Text(call.displayName)
@@ -546,9 +526,9 @@ struct AIChatView: View {
                 Haptics.tap()
                 env.settings.provider = .demo
             } label: {
-                Label("Use the demo assistant", systemImage: "sparkles")
+                Label("Use the demo assistant", systemImage: "play.circle")
                     .font(.obCallout.weight(.semibold))
-                    .foregroundStyle(Palette.purple)
+                    .foregroundStyle(Palette.accent)
             }
             .buttonStyle(.plain)
         }

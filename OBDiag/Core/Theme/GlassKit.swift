@@ -6,44 +6,44 @@ import SwiftUI
 // is reserved for the navigation layer — toolbar controls, floating buttons and
 // the tab bar — exactly as the Human Interface Guidelines describe.
 
-/// A content card: system grouped surface, continuous corners, hairline
-/// separator. No borders-for-decoration, no chrome.
+/// A content card: the system grouped surface with continuous corners, like
+/// an inset-grouped cell. No border, no shadow, one radius everywhere. The card
+/// adds no inset of its own; callers pad their content (14–16pt for text,
+/// `.vertical` only for row lists so dividers run edge to edge).
+/// The one card radius, shared by every `Panel`.
+let panelCornerRadius: CGFloat = 20
+
 struct Panel<Content: View>: View {
-    var cornerRadius: CGFloat = 20
     var tint: Color? = nil
-    var interactive: Bool = false
     @ViewBuilder var content: Content
 
     var body: some View {
         content
-            .padding(16)
             .frame(maxWidth: .infinity, alignment: .leading)
             .background {
-                RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
+                RoundedRectangle(cornerRadius: panelCornerRadius, style: .continuous)
                     .fill(Palette.grouped)
                     .overlay {
                         if let tint {
-                            RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
+                            RoundedRectangle(cornerRadius: panelCornerRadius, style: .continuous)
                                 .fill(tint.opacity(0.12))
                         }
                     }
             }
-            .overlay {
-                RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
-                    .strokeBorder(Palette.stroke.opacity(0.5), lineWidth: 0.5)
-            }
-            .contentShape(RoundedRectangle(cornerRadius: cornerRadius, style: .continuous))
+            .contentShape(RoundedRectangle(cornerRadius: panelCornerRadius, style: .continuous))
     }
 }
 
 extension View {
     /// Wraps any view in a content card.
-    func panel(cornerRadius: CGFloat = 20, tint: Color? = nil, interactive: Bool = false) -> some View {
-        Panel(cornerRadius: cornerRadius, tint: tint, interactive: interactive) { self }
+    func panel(tint: Color? = nil) -> some View {
+        Panel(tint: tint) { self }
     }
 }
 
-/// Compact status pill: tinted capsule, sentence case, platform caption size.
+/// Compact metadata tag, like the tags in the App Store: a quiet system-fill
+/// capsule with secondary text. Colour appears only on the icon, and only when
+/// it means something (severity, status).
 struct GlassChip: View {
     var text: String
     var systemImage: String? = nil
@@ -53,36 +53,16 @@ struct GlassChip: View {
         HStack(spacing: 5) {
             if let systemImage {
                 Image(systemName: systemImage)
-                    .font(.system(size: 11, weight: .semibold))
+                    .font(.caption.weight(.semibold))
+                    .foregroundStyle(tint)
             }
             Text(text)
-                .font(.system(size: 13, weight: .medium))
+                .font(.footnote.weight(.medium))
+                .foregroundStyle(Palette.textSecondary)
         }
-        .foregroundStyle(tint)
         .padding(.horizontal, 10)
         .padding(.vertical, 5)
-        .background(tint.opacity(0.15), in: Capsule())
-    }
-}
-
-/// Circular glass icon button sized for a comfortable 44pt target.
-struct GlassIconButton: View {
-    var systemImage: String
-    var tint: Color = Palette.textPrimary
-    var size: CGFloat = 44
-    var action: () -> Void
-
-    var body: some View {
-        Button(action: action) {
-            Image(systemName: systemImage)
-                .font(.system(size: size * 0.36, weight: .semibold))
-                .foregroundStyle(tint)
-                .frame(width: size, height: size)
-                .contentShape(Circle())
-        }
-        .buttonStyle(.plain)
-        .glassEffect(.regular.interactive(), in: .circle)
-        .accessibilityLabel(systemImage)
+        .background(Color(uiColor: .tertiarySystemFill), in: Capsule())
     }
 }
 
@@ -102,15 +82,15 @@ struct GlassActionButton: View {
                     ProgressView().controlSize(.small)
                 } else if let systemImage {
                     Image(systemName: systemImage)
-                        .font(.system(size: 15, weight: .semibold))
+                        .font(.subheadline.weight(.semibold))
                 }
                 Text(title)
                     .font(.headline)
             }
-            .frame(maxWidth: .infinity, minHeight: 30)
-            .padding(.vertical, 6)
+            .frame(maxWidth: .infinity)
         }
         .buttonStyle(.glassProminent)
+        .controlSize(.large)
         .tint(tint)
         .disabled(!isEnabled || isLoading)
         .opacity(isEnabled ? 1 : 0.5)
@@ -129,16 +109,16 @@ struct GlassSecondaryButton: View {
             HStack(spacing: 7) {
                 if let systemImage {
                     Image(systemName: systemImage)
-                        .font(.system(size: 15, weight: .semibold))
+                        .font(.subheadline.weight(.semibold))
                 }
                 Text(title)
                     .font(.headline)
             }
             .foregroundStyle(tint)
-            .frame(maxWidth: .infinity, minHeight: 30)
-            .padding(.vertical, 6)
+            .frame(maxWidth: .infinity)
         }
         .buttonStyle(.glass)
+        .controlSize(.large)
     }
 }
 
@@ -184,7 +164,8 @@ struct EmptyStateView: View {
     var body: some View {
         VStack(spacing: 12) {
             Image(systemName: systemImage)
-                .font(.system(size: 48, weight: .light))
+                .font(.largeTitle.weight(.light))
+                .imageScale(.large)
                 .foregroundStyle(Palette.textSecondary)
                 .padding(.bottom, 2)
 
@@ -216,6 +197,7 @@ struct StatusDot: View {
     var color: Color
     var pulsing: Bool = false
 
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var animate = false
 
     var body: some View {
@@ -223,7 +205,7 @@ struct StatusDot: View {
             .fill(color)
             .frame(width: 8, height: 8)
             .overlay {
-                if pulsing {
+                if pulsing, !reduceMotion {
                     Circle()
                         .stroke(color.opacity(0.45), lineWidth: 1.5)
                         .scaleEffect(animate ? 2.6 : 1)
@@ -233,6 +215,26 @@ struct StatusDot: View {
             }
             .onAppear { animate = pulsing }
     }
+}
+
+/// Text-input surface for the content layer: the same grouped fill and
+/// hairline as `Panel`, without the card padding. Inputs live in the content,
+/// not the navigation layer, so they are not glass.
+struct InputSurface: ViewModifier {
+    var cornerRadius: CGFloat = 14
+
+    func body(content: Content) -> some View {
+        content
+            .background(Palette.grouped, in: RoundedRectangle(cornerRadius: cornerRadius, style: .continuous))
+            .overlay {
+                RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
+                    .strokeBorder(Palette.stroke.opacity(0.5), lineWidth: 0.5)
+            }
+    }
+}
+
+extension View {
+    func inputSurface(cornerRadius: CGFloat = 14) -> some View { modifier(InputSurface(cornerRadius: cornerRadius)) }
 }
 
 /// Keyboard-safe scroll behaviour helper for chat and forms.

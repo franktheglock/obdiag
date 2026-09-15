@@ -20,7 +20,7 @@ struct AboutView: View {
                                 .fill(Gradients.accent.opacity(0.2))
                                 .frame(width: 56, height: 56)
                             Image(systemName: "bolt.car.fill")
-                                .font(.system(size: 24, weight: .semibold))
+                                .font(.title2.weight(.semibold))
                                 .foregroundStyle(Palette.accent)
                         }
                         VStack(alignment: .leading, spacing: 3) {
@@ -41,7 +41,7 @@ struct AboutView: View {
                             .foregroundStyle(Palette.textTertiary)
                         Spacer()
                         Text(version)
-                            .font(.obMono(12))
+                            .obMono(12)
                             .foregroundStyle(Palette.textTertiary)
                     }
                 }
@@ -99,7 +99,7 @@ struct AboutView: View {
     private func aboutRow(icon: String, tint: Color, title: String, detail: String) -> some View {
         HStack(alignment: .top, spacing: 12) {
             Image(systemName: icon)
-                .font(.system(size: 15, weight: .semibold))
+                .font(.subheadline.weight(.semibold))
                 .foregroundStyle(tint)
                 .frame(width: 24)
                 .padding(.top, 1)
@@ -123,7 +123,7 @@ struct AboutView: View {
                     .foregroundStyle(Palette.textPrimary)
                 Spacer()
                 Image(systemName: "arrow.up.right.square")
-                    .font(.system(size: 12))
+                    .font(.caption)
                     .foregroundStyle(Palette.accent)
             }
         }

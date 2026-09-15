@@ -49,7 +49,7 @@ struct MarkdownText: View {
         case .ordered(let number, let text):
             HStack(alignment: .top, spacing: 8) {
                 Text("\(number).")
-                    .font(.obMono(14, weight: .semibold))
+                    .obMono(14, weight: .semibold)
                     .foregroundStyle(Palette.accent)
                     .frame(width: 22, alignment: .trailing)
                 Text(Self.inline(text))
@@ -62,7 +62,7 @@ struct MarkdownText: View {
         case .code(let text):
             ScrollView(.horizontal, showsIndicators: false) {
                 Text(text)
-                    .font(.obMono(13, weight: .regular))
+                    .obMono(13, weight: .regular)
                     .foregroundStyle(Palette.textPrimary)
                     .padding(11)
             }

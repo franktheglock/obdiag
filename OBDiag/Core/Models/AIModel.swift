@@ -208,7 +208,7 @@ enum AIProviderKind: String, Codable, CaseIterable, Identifiable, Sendable {
         case .obdiag: return "bolt.badge.automatic.fill"
         case .openRouter: return "cloud.fill"
         case .lmStudio: return "desktopcomputer"
-        case .demo: return "sparkles"
+        case .demo: return "play.circle"
         }
     }
 }

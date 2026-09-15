@@ -13,6 +13,7 @@ enum SettingsRoute: Hashable {
 
 struct SettingsView: View {
     @Environment(AppEnvironment.self) private var env
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     /// Only used by the `-showSubscription` debug screenshot hook.
     @State private var path = NavigationPath()
 
@@ -34,7 +35,7 @@ struct SettingsView: View {
                     NavigationLink(value: SettingsRoute.models) {
                         settingsRow(
                             icon: env.chat.selectedModel.tier.icon,
-                            tint: Palette.purple,
+                            tint: Palette.accent,
                             title: "Model",
                             detail: env.chat.selectedModel.name
                         )
@@ -72,10 +73,10 @@ struct SettingsView: View {
                         set: { env.settings.demoAdapterEnabled = $0 }
                     )) {
                         settingsRow(
-                            icon: "sparkles",
-                            tint: Palette.purple,
+                            icon: "play.circle",
+                            tint: Palette.accent,
                             title: "Start in demo mode",
-                            detail: "Simulate a connected vehicle"
+                            detail: "Connect a simulated vehicle at launch"
                         )
                     }
                     Toggle(isOn: Binding(
@@ -98,7 +99,7 @@ struct SettingsView: View {
                                 .font(.obCallout)
                             Spacer()
                             Text(String(preferred.prefix(8)) + "…")
-                                .font(.obMono(12))
+                                .obMono(12)
                                 .foregroundStyle(Palette.textTertiary)
                         }
                     }
@@ -185,8 +186,8 @@ struct SettingsView: View {
                         RoundedRectangle(cornerRadius: 14, style: .continuous)
                             .fill(Gradients.accent.opacity(0.18))
                             .frame(width: 48, height: 48)
-                        Image(systemName: "sparkles")
-                            .font(.system(size: 20, weight: .semibold))
+                        Image(systemName: "creditcard")
+                            .font(.title3.weight(.semibold))
                             .foregroundStyle(Palette.accent)
                     }
                     VStack(alignment: .leading, spacing: 3) {
@@ -198,9 +199,11 @@ struct SettingsView: View {
                             .foregroundStyle(Palette.textSecondary)
                     }
                     Spacer()
-                    Text("Manage")
-                        .font(.obCaption.weight(.semibold))
-                        .foregroundStyle(Palette.accent)
+                    if !dynamicTypeSize.isAccessibilitySize {
+                        Text("Manage")
+                            .font(.obCaption.weight(.semibold))
+                            .foregroundStyle(Palette.accent)
+                    }
                 }
                 .padding(.vertical, 4)
             }
@@ -210,7 +213,7 @@ struct SettingsView: View {
     private func settingsRow(icon: String, tint: Color, title: String, detail: String?) -> some View {
         HStack(spacing: 12) {
             Image(systemName: icon)
-                .font(.system(size: 15, weight: .semibold))
+                .font(.subheadline.weight(.semibold))
                 .foregroundStyle(tint)
                 .frame(width: 26)
             VStack(alignment: .leading, spacing: 2) {
@@ -378,7 +381,7 @@ struct DataManagementView: View {
                 .font(.obCallout)
             Spacer()
             Text(value)
-                .font(.obMono(13, weight: .medium))
+                .obMono(13, weight: .medium)
                 .foregroundStyle(Palette.textSecondary)
         }
     }

@@ -73,7 +73,7 @@ struct ProviderSettingsView: View {
         } label: {
             HStack(spacing: 13) {
                 Image(systemName: provider.icon)
-                    .font(.system(size: 17, weight: .semibold))
+                    .font(.body.weight(.semibold))
                     .foregroundStyle(env.settings.provider == provider ? Palette.accent : Palette.textSecondary)
                     .frame(width: 28)
                 VStack(alignment: .leading, spacing: 2) {
@@ -104,7 +104,7 @@ struct ProviderSettingsView: View {
             if env.auth.isSignedIn {
                 LabeledContent("Account") {
                     Text(env.auth.uid.map { String($0.prefix(8)) + "…" } ?? "Signed in")
-                        .font(.obMono(12))
+                        .obMono(12)
                         .foregroundStyle(Palette.textSecondary)
                 }
                 LabeledContent("Plan") {
@@ -146,12 +146,12 @@ struct ProviderSettingsView: View {
                     .frame(width: 26)
                 if showKey {
                     TextField("sk-or-…", text: $openRouterKeyField)
-                        .font(.obMono(13))
+                        .obMono(13)
                         .textInputAutocapitalization(.never)
                         .autocorrectionDisabled()
                 } else {
                     SecureField("sk-or-…", text: $openRouterKeyField)
-                        .font(.obMono(13))
+                        .obMono(13)
                         .textInputAutocapitalization(.never)
                         .autocorrectionDisabled()
                 }
@@ -192,7 +192,7 @@ struct ProviderSettingsView: View {
                         .font(.obCallout)
                     Spacer()
                     Image(systemName: "chevron.right")
-                        .font(.system(size: 12, weight: .semibold))
+                        .font(.caption.weight(.semibold))
                         .foregroundStyle(Palette.textTertiary)
                 }
             }
@@ -258,7 +258,7 @@ struct ProviderSettingsView: View {
                     .font(.obMicro)
                     .foregroundStyle(Palette.textTertiary)
                 TextField("http://localhost:1234/v1", text: $lmStudioURLField)
-                    .font(.obMono(13))
+                    .obMono(13)
                     .textInputAutocapitalization(.never)
                     .autocorrectionDisabled()
                     .keyboardType(.URL)
@@ -268,7 +268,7 @@ struct ProviderSettingsView: View {
                     .font(.obMicro)
                     .foregroundStyle(Palette.textTertiary)
                 TextField("local-model", text: $lmStudioModelField)
-                    .font(.obMono(13))
+                    .obMono(13)
                     .textInputAutocapitalization(.never)
                     .autocorrectionDisabled()
             }

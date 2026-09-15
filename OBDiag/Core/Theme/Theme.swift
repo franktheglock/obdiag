@@ -51,63 +51,84 @@ enum Gradients {
 // MARK: - Typography
 //
 // SF Pro throughout, mapped to the platform text styles so Dynamic Type works.
-// Numbers use tabular figures; only raw protocol data is truly monospaced.
+// Every `ob*` font is a text style with a weight, never a fixed point size, so
+// the whole app follows the user's text size setting. Numbers use tabular
+// figures via `.obMono`, which scales its base size with `@ScaledMetric`.
 
 extension Font {
-    static let obDisplay = Font.system(size: 32, weight: .bold)
-    static let obLargeTitle = Font.system(size: 32, weight: .bold)
-    static let obTitle = Font.system(size: 24, weight: .semibold)
-    static let obTitle2 = Font.system(size: 20, weight: .semibold)
-    static let obHeadline = Font.system(size: 17, weight: .semibold)
-    static let obBody = Font.system(size: 17, weight: .regular)
-    static let obCallout = Font.system(size: 16, weight: .regular)
-    static let obCaption = Font.system(size: 13, weight: .regular)
-    static let obMicro = Font.system(size: 12, weight: .medium)
-    static let obLabel = Font.system(size: 12, weight: .medium)
+    static let obDisplay = Font.largeTitle.weight(.bold)
+    static let obLargeTitle = Font.largeTitle.weight(.bold)
+    static let obTitle = Font.title2.weight(.semibold)
+    static let obTitle2 = Font.title3.weight(.semibold)
+    static let obHeadline = Font.headline
+    static let obBody = Font.body
+    static let obCallout = Font.callout
+    static let obCaption = Font.footnote
+    static let obMicro = Font.caption.weight(.medium)
+    static let obLabel = Font.caption.weight(.medium)
+}
 
-    /// Tabular figures so live values never jitter as they update.
-    static func obMono(_ size: CGFloat, weight: Font.Weight = .semibold) -> Font {
-        .system(size: size, weight: weight).monospacedDigit()
+/// A system font at a designed point size that still scales with Dynamic Type.
+/// The size is treated as the value at the default (Large) text size and
+/// scaled relative to the closest text style, so a 44pt hero readout grows and
+/// shrinks in step with the body text around it.
+private struct ScaledSystemFont: ViewModifier {
+    @ScaledMetric private var size: CGFloat
+    private let weight: Font.Weight
+    private let design: Font.Design
+    private let tabularDigits: Bool
+
+    init(size: CGFloat, weight: Font.Weight, design: Font.Design, tabularDigits: Bool) {
+        _size = ScaledMetric(wrappedValue: size, relativeTo: Self.textStyle(closestTo: size))
+        self.weight = weight
+        self.design = design
+        self.tabularDigits = tabularDigits
     }
 
-    /// True monospace, reserved for raw adapter logs and protocol payloads.
-    static func obMonoFull(_ size: CGFloat, weight: Font.Weight = .regular) -> Font {
-        .system(size: size, weight: weight, design: .monospaced)
+    func body(content: Content) -> some View {
+        let font = Font.system(size: size, weight: weight, design: design)
+        content.font(tabularDigits ? font.monospacedDigit() : font)
+    }
+
+    /// Default (Large) point sizes of the iOS text styles, used to pick which
+    /// style's scaling curve a custom size should follow.
+    private static func textStyle(closestTo size: CGFloat) -> Font.TextStyle {
+        switch size {
+        case 34...: return .largeTitle
+        case 28..<34: return .title
+        case 22..<28: return .title2
+        case 20..<22: return .title3
+        case 17..<20: return .body
+        case 16..<17: return .callout
+        case 15..<16: return .subheadline
+        case 13..<15: return .footnote
+        case 12..<13: return .caption
+        default: return .caption2
+        }
     }
 }
 
 extension View {
-    /// Small secondary label treatment used above readouts and in section heads.
-    func obLabelStyle(_ color: Color = Palette.textSecondary) -> some View {
-        font(.obLabel)
-            .foregroundStyle(color)
+    /// Tabular figures at a scaled size, so live values never jitter as they
+    /// update and still respect Dynamic Type.
+    func obMono(_ size: CGFloat, weight: Font.Weight = .semibold) -> some View {
+        modifier(ScaledSystemFont(size: size, weight: weight, design: .default, tabularDigits: true))
+    }
+
+    /// True monospace at a scaled size, reserved for raw adapter logs and
+    /// protocol payloads.
+    func obMonoFull(_ size: CGFloat, weight: Font.Weight = .regular) -> some View {
+        modifier(ScaledSystemFont(size: size, weight: weight, design: .monospaced, tabularDigits: false))
     }
 }
 
 // MARK: - Background
 
-/// A quiet dark backdrop: system background with two very soft color blooms,
-/// like the ambience in Weather or Fitness. No grid, no texture — the content
-/// is the interface.
+/// The app backdrop: the plain system background. Colour lives in content
+/// (readings, severity, the accent on actions), not in the canvas behind it.
 struct AppBackground: View {
     var body: some View {
-        ZStack {
-            Palette.base
-
-            RadialGradient(
-                colors: [Palette.accent.opacity(0.14), .clear],
-                center: .init(x: 0.12, y: -0.08), startRadius: 0, endRadius: 640
-            )
-            RadialGradient(
-                colors: [Palette.purple.opacity(0.07), .clear],
-                center: .init(x: 0.95, y: 0.10), startRadius: 0, endRadius: 520
-            )
-            RadialGradient(
-                colors: [Palette.amber.opacity(0.05), .clear],
-                center: .init(x: 0.85, y: 0.95), startRadius: 0, endRadius: 620
-            )
-        }
-        .ignoresSafeArea()
+        Palette.base.ignoresSafeArea()
     }
 }
 
@@ -121,25 +142,6 @@ struct TransparentSheetContent: ViewModifier {
 
 extension View {
     func transparentSheetContent() -> some View { modifier(TransparentSheetContent()) }
-}
-
-/// Soft fade behind floating bottom controls (composer, action bars).
-struct BottomFade: ViewModifier {
-    var intensity: Double = 0.9
-
-    func body(content: Content) -> some View {
-        content.background {
-            LinearGradient(
-                colors: [Palette.base.opacity(0), Palette.base.opacity(intensity)],
-                startPoint: .top, endPoint: .bottom
-            )
-            .ignoresSafeArea()
-        }
-    }
-}
-
-extension View {
-    func bottomFade(intensity: Double = 0.9) -> some View { modifier(BottomFade(intensity: intensity)) }
 }
 
 /// Standard screen chrome: background + scroll styling hook.

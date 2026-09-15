@@ -100,7 +100,7 @@ enum CreditReason: String, Codable, Sendable {
         case .monthlyGrant: return "calendar.badge.plus"
         case .purchase: return "bag.fill"
         case .subscription: return "arrow.triangle.2.circlepath"
-        case .chat: return "sparkles"
+        case .chat: return "bubble.left.and.text.bubble.right"
         case .adjustment: return "wrench.and.screwdriver.fill"
         case .refund: return "arrow.uturn.backward"
         }

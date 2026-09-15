@@ -23,7 +23,7 @@ enum AppSection: String, CaseIterable, Identifiable, Hashable {
         switch self {
         case .garage: return "car.2.fill"
         case .dashboard: return "gauge.with.dots.needle.67percent"
-        case .chat: return "sparkles"
+        case .chat: return "bubble.left.and.text.bubble.right.fill"
         case .settings: return "gearshape.fill"
         }
     }
@@ -98,6 +98,7 @@ struct CompactRootView: View {
                     SettingsView()
                 }
         }
+        .tabBarMinimizeBehavior(.onScrollDown)
     }
 }
 

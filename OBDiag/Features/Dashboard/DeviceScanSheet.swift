@@ -33,7 +33,7 @@ struct DeviceScanSheet: View {
                             Spacer(minLength: 0)
                         }
                         .padding(12)
-                        .panel(cornerRadius: 16)
+                        .panel()
                     }
 
                     if !likely.isEmpty {
@@ -101,7 +101,7 @@ struct DeviceScanSheet: View {
                         ProgressView().controlSize(.small).tint(Palette.accent)
                     } else {
                         Image(systemName: "antenna.radiowaves.left.and.right.slash")
-                            .font(.system(size: 17, weight: .semibold))
+                            .font(.body.weight(.semibold))
                             .foregroundStyle(Palette.textSecondary)
                     }
                     VStack(alignment: .leading, spacing: 2) {
@@ -117,7 +117,7 @@ struct DeviceScanSheet: View {
                     Spacer(minLength: 0)
                 }
                 .padding(14)
-                .panel(cornerRadius: 14)
+                .panel()
             }
         }
     }
@@ -125,7 +125,7 @@ struct DeviceScanSheet: View {
     private var connectedCard: some View {
         HStack(spacing: 12) {
             Image(systemName: "checkmark.circle.fill")
-                .font(.system(size: 24))
+                .font(.title2)
                 .foregroundStyle(Palette.success)
             VStack(alignment: .leading, spacing: 3) {
                 Text(env.obd.adapterInfo?.name ?? "Adapter")
@@ -147,7 +147,7 @@ struct DeviceScanSheet: View {
             .tint(Palette.danger)
         }
         .padding(14)
-        .panel(cornerRadius: 14, tint: Palette.success.opacity(0.10))
+        .panel(tint: Palette.success.opacity(0.10))
     }
 
     private func adapterSection(_ title: String, adapters: [DiscoveredAdapter]) -> some View {
@@ -165,7 +165,7 @@ struct DeviceScanSheet: View {
                 }
             }
             .padding(.vertical, 4)
-            .panel(cornerRadius: 14)
+            .panel()
         }
     }
 
@@ -175,7 +175,7 @@ struct DeviceScanSheet: View {
         } label: {
             HStack(spacing: 12) {
                 Image(systemName: adapter.isLikelyOBD ? "bolt.horizontal.circle.fill" : "dot.radiowaves.left.and.right")
-                    .font(.system(size: 18))
+                    .font(.body)
                     .foregroundStyle(adapter.isLikelyOBD ? Palette.accent : Palette.textTertiary)
                     .frame(width: 26)
                 VStack(alignment: .leading, spacing: 2) {
@@ -198,7 +198,7 @@ struct DeviceScanSheet: View {
                         .font(.obMicro)
                         .foregroundStyle(Palette.textTertiary)
                     Image(systemName: "chevron.right")
-                        .font(.system(size: 12, weight: .semibold))
+                        .font(.caption.weight(.semibold))
                         .foregroundStyle(Palette.textTertiary)
                 }
             }
@@ -211,14 +211,14 @@ struct DeviceScanSheet: View {
 
     private var footer: some View {
         VStack(spacing: 10) {
-            GlassSecondaryButton(title: "Explore with demo vehicle", systemImage: "sparkles") {
+            GlassSecondaryButton(title: "Explore with demo vehicle", systemImage: "play.circle") {
                 Haptics.tap()
                 Task {
                     await env.obd.connectDemo()
                     dismiss()
                 }
             }
-            .tint(Palette.purple)
+            .tint(Palette.accent)
 
             Text("Demo mode simulates a full ELM327 adapter and a vehicle, so you can try every feature without hardware.")
                 .font(.obMicro)

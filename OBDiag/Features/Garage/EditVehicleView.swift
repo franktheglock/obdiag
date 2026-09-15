@@ -101,7 +101,7 @@ struct EditVehicleView: View {
                 }
             }
             .padding(14)
-            .panel(cornerRadius: 14)
+            .panel()
         }
     }
 
@@ -113,7 +113,7 @@ struct EditVehicleView: View {
                 .textCase(.uppercase)
             VStack(alignment: .leading, spacing: 12) {
                 TextField("17-character VIN", text: $draft.vin)
-                    .font(.obMono(16, weight: .medium))
+                    .obMono(16, weight: .medium)
                     .textInputAutocapitalization(.characters)
                     .autocorrectionDisabled()
                     .onChange(of: draft.vin) { _, newValue in
@@ -153,7 +153,7 @@ struct EditVehicleView: View {
                 }
             }
             .padding(14)
-            .panel(cornerRadius: 14)
+            .panel()
         }
     }
 

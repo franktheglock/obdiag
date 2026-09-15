@@ -106,20 +106,20 @@ struct LogRow: View {
     var body: some View {
         HStack(alignment: .top, spacing: 8) {
             Text(Format.timestamp(entry.timestamp))
-                .font(.obMono(10, weight: .regular))
+                .obMono(10, weight: .regular)
                 .foregroundStyle(Palette.textTertiary)
                 .frame(width: 78, alignment: .leading)
             Text(entry.direction.symbol)
-                .font(.obMono(11, weight: .bold))
+                .obMono(11, weight: .bold)
                 .foregroundStyle(color)
             Text(entry.text)
-                .font(.obMono(11, weight: .regular))
+                .obMono(11, weight: .regular)
                 .foregroundStyle(entry.direction == .received ? Palette.textPrimary : Palette.textSecondary)
                 .textSelection(.enabled)
             Spacer(minLength: 0)
             if let duration = entry.duration {
                 Text(String(format: "%.0f ms", duration * 1000))
-                    .font(.obMono(9, weight: .regular))
+                    .obMono(9, weight: .regular)
                     .foregroundStyle(Palette.textTertiary)
             }
         }

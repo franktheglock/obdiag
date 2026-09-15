@@ -34,7 +34,7 @@ struct GlobalConnectionBanner: View {
                                 .lineLimit(1)
                         }
                         Image(systemName: "chevron.right")
-                            .font(.system(size: 9, weight: .bold))
+                            .font(.caption2.weight(.bold))
                             .foregroundStyle(Palette.textTertiary)
                     }
                     .padding(.horizontal, 13)
@@ -88,9 +88,9 @@ struct GlobalConnectionBanner: View {
             return Presentation(
                 title: env.obd.isDemo ? "Demo vehicle live" : "Adapter live",
                 detail: detail,
-                tint: env.obd.isDemo ? Palette.purple : Palette.success,
+                tint: env.obd.isDemo ? Palette.accent : Palette.success,
                 isBusy: false,
-                symbol: env.obd.isDemo ? "sparkles" : "bolt.fill"
+                symbol: "bolt.fill"
             )
         case .connecting(let name):
             return Presentation(title: "Connecting to \(name)", detail: nil, tint: Palette.amber, isBusy: true, symbol: "bolt.horizontal")
@@ -115,7 +115,7 @@ struct GlobalConnectionBanner: View {
                 .tint(presentation.tint)
         } else {
             Image(systemName: presentation.symbol)
-                .font(.system(size: 11, weight: .bold))
+                .font(.caption.weight(.bold))
                 .foregroundStyle(presentation.tint)
         }
     }

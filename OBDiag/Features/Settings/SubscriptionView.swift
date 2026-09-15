@@ -21,7 +21,7 @@ struct SubscriptionContent: View {
                                 .foregroundStyle(Palette.accent)
                                 .padding(12)
                                 .frame(maxWidth: .infinity, alignment: .leading)
-                                .panel(cornerRadius: 16)
+                                .panel()
                         }
                         periodPicker
                         plans
@@ -73,7 +73,7 @@ struct SubscriptionContent: View {
                         .font(.obCaption)
                         .foregroundStyle(Palette.textSecondary)
                     Text(Format.credits(env.creditBalance))
-                        .font(.obMono(40, weight: .bold))
+                        .obMono(40, weight: .bold)
                         .foregroundStyle(Palette.textPrimary)
                         .contentTransition(.numericText())
                 }
@@ -92,7 +92,7 @@ struct SubscriptionContent: View {
                 .foregroundStyle(Palette.textTertiary)
         }
         .padding(18)
-        .panel(cornerRadius: 16)
+        .panel()
     }
 
     private func stat(_ label: String, _ value: String) -> some View {
@@ -101,7 +101,7 @@ struct SubscriptionContent: View {
                 .font(.obMicro)
                 .foregroundStyle(Palette.textTertiary)
             Text(value)
-                .font(.obMono(14, weight: .semibold))
+                .obMono(14, weight: .semibold)
                 .foregroundStyle(Palette.textSecondary)
         }
     }
@@ -160,7 +160,7 @@ struct SubscriptionContent: View {
                 ForEach(tier.features, id: \.self) { feature in
                     HStack(alignment: .top, spacing: 8) {
                         Image(systemName: "checkmark")
-                            .font(.system(size: 10, weight: .bold))
+                            .font(.caption2.weight(.bold))
                             .foregroundStyle(Palette.success)
                             .padding(.top, 3)
                         Text(feature)
@@ -176,8 +176,8 @@ struct SubscriptionContent: View {
             } else if let offer {
                 GlassActionButton(
                     title: "Get \(tier.title) · \(selectedPeriod.title)",
-                    systemImage: "sparkles",
-                    tint: tier == .pro ? Palette.purple : Palette.accent
+                    systemImage: "star.fill",
+                    tint: Palette.accent
                 ) {
                     purchase(offer)
                 }
@@ -188,14 +188,7 @@ struct SubscriptionContent: View {
             }
         }
         .padding(16)
-        .panel(
-            cornerRadius: 14,
-            tint: tier == .pro ? Palette.purple.opacity(0.10) : (selectedPeriod == .yearly ? Palette.accent.opacity(0.10) : nil)
-        )
-        .overlay(
-            RoundedRectangle(cornerRadius: 14, style: .continuous)
-                .strokeBorder(tier == .pro ? Palette.purple.opacity(0.4) : Palette.stroke, lineWidth: 1)
-        )
+        .panel(tint: tier == .pro || selectedPeriod == .yearly ? Palette.accent.opacity(0.10) : nil)
     }
 
     private func offer(for tier: PlanTier, period: PlanOffer.Period) -> PlanOffer? {
@@ -218,7 +211,7 @@ struct SubscriptionContent: View {
             Spacer()
         }
         .padding(14)
-        .panel(cornerRadius: 16)
+        .panel()
     }
 
     // MARK: Credit packs
@@ -236,7 +229,7 @@ struct SubscriptionContent: View {
                     Spacer()
                 }
                 .padding(14)
-                .panel(cornerRadius: 14)
+                .panel()
             } else {
                 LazyVGrid(columns: [GridItem(.adaptive(minimum: 140), spacing: 10)], spacing: 10) {
                     ForEach(env.subscriptions.creditPacks) { pack in
@@ -248,7 +241,7 @@ struct SubscriptionContent: View {
                                     .font(.obCallout.weight(.semibold))
                                     .foregroundStyle(Palette.textPrimary)
                                 Text(pack.displayPrice)
-                                    .font(.obMono(15, weight: .semibold))
+                                    .obMono(15, weight: .semibold)
                                     .foregroundStyle(Palette.accent)
                             }
                             .frame(maxWidth: .infinity, alignment: .leading)
@@ -256,7 +249,7 @@ struct SubscriptionContent: View {
                             .contentShape(Rectangle())
                         }
                         .buttonStyle(.plain)
-                        .panel(cornerRadius: 14, interactive: true)
+                        .panel()
                         .disabled(isPurchasing)
                     }
                 }
@@ -291,7 +284,7 @@ struct SubscriptionContent: View {
                 )
             }
             .padding(14)
-            .panel(cornerRadius: 14)
+            .panel()
         }
     }
 
@@ -302,7 +295,7 @@ struct SubscriptionContent: View {
     private func explainerRow(icon: String, text: String) -> some View {
         HStack(alignment: .top, spacing: 10) {
             Image(systemName: icon)
-                .font(.system(size: 13, weight: .semibold))
+                .font(.footnote.weight(.semibold))
                 .foregroundStyle(Palette.accent)
                 .frame(width: 22)
                 .padding(.top, 1)
@@ -325,7 +318,7 @@ struct SubscriptionContent: View {
                     ForEach(Array(activity.prefix(10).enumerated()), id: \.element.id) { index, transaction in
                         HStack(spacing: 11) {
                             Image(systemName: transaction.reason.icon)
-                                .font(.system(size: 13, weight: .semibold))
+                                .font(.footnote.weight(.semibold))
                                 .foregroundStyle(transaction.amount > 0 ? Palette.success : Palette.textSecondary)
                                 .frame(width: 22)
                             VStack(alignment: .leading, spacing: 2) {
@@ -340,7 +333,7 @@ struct SubscriptionContent: View {
                             Spacer(minLength: 4)
                             VStack(alignment: .trailing, spacing: 2) {
                                 Text(transaction.amount > 0 ? "+\(transaction.amount)" : "\(transaction.amount)")
-                                    .font(.obMono(13, weight: .semibold))
+                                    .obMono(13, weight: .semibold)
                                     .foregroundStyle(transaction.amount > 0 ? Palette.success : Palette.textSecondary)
                                 Text(Format.relative(transaction.date ?? Date()))
                                     .font(.obMicro)
@@ -355,7 +348,7 @@ struct SubscriptionContent: View {
                     }
                 }
                 .padding(.vertical, 4)
-                .panel(cornerRadius: 14)
+                .panel()
             }
         }
     }

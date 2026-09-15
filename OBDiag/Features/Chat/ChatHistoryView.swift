@@ -113,7 +113,7 @@ struct ChatHistoryView: View {
     private func conversationLabel(_ conversation: Conversation) -> some View {
         HStack(spacing: 12) {
             Image(systemName: conversation.isPinned ? "pin.fill" : "bubble.left.and.bubble.right")
-                .font(.system(size: 15))
+                .font(.subheadline)
                 .foregroundStyle(conversation.isPinned ? Palette.amber : Palette.accent)
                 .frame(width: 24)
             VStack(alignment: .leading, spacing: 3) {
@@ -250,9 +250,9 @@ struct ModelPickerSheet: View {
 
     private var demoNotice: some View {
         HStack(spacing: 11) {
-            Image(systemName: "sparkles")
-                .font(.system(size: 17))
-                .foregroundStyle(Palette.purple)
+            Image(systemName: "bubble.left.and.text.bubble.right")
+                .font(.body)
+                .foregroundStyle(Palette.accent)
             VStack(alignment: .leading, spacing: 2) {
                 Text("Demo assistant is active")
                     .font(.obCallout.weight(.semibold))
@@ -271,12 +271,12 @@ struct ModelPickerSheet: View {
             .controlSize(.small)
         }
         .padding(14)
-        .panel(cornerRadius: 14, tint: Palette.purple.opacity(0.10))
+        .panel(tint: Palette.accent.opacity(0.10))
     }
 
     private var planBanner: some View {
         HStack(spacing: 10) {
-            Image(systemName: "sparkles")
+            Image(systemName: "bubble.left.and.text.bubble.right")
                 .foregroundStyle(Palette.accent)
             VStack(alignment: .leading, spacing: 2) {
                 Text("\(env.subscriptions.plan.title) plan · \(Format.credits(env.creditBalance)) credits")
@@ -294,7 +294,7 @@ struct ModelPickerSheet: View {
                 .controlSize(.small)
         }
         .padding(14)
-        .panel(cornerRadius: 14)
+        .panel()
     }
 
     private func tierSection(_ tier: ModelTier, models: [AIModel]) -> some View {
@@ -302,7 +302,7 @@ struct ModelPickerSheet: View {
         return VStack(alignment: .leading, spacing: 10) {
             HStack(spacing: 7) {
                 Image(systemName: tier.icon)
-                    .font(.system(size: 12, weight: .bold))
+                    .font(.caption.weight(.bold))
                     .foregroundStyle(locked ? Palette.textTertiary : Palette.accent)
                 Text(tier.title)
                     .font(.obHeadline)
@@ -326,7 +326,7 @@ struct ModelPickerSheet: View {
                 }
             }
             .padding(.vertical, 4)
-            .panel(cornerRadius: 14)
+            .panel()
         }
     }
 
@@ -353,7 +353,7 @@ struct ModelPickerSheet: View {
                             .foregroundStyle(locked ? Palette.textTertiary : Palette.textPrimary)
                         if model.supportsImages {
                             Image(systemName: "eye.fill")
-                                .font(.system(size: 9, weight: .bold))
+                                .font(.caption2.weight(.bold))
                                 .foregroundStyle(Palette.accent.opacity(locked ? 0.4 : 1))
                                 .accessibilityLabel("Can view images")
                         }
@@ -371,11 +371,11 @@ struct ModelPickerSheet: View {
                 Spacer(minLength: 4)
                 if locked {
                     Image(systemName: "lock.fill")
-                        .font(.system(size: 13))
+                        .font(.footnote)
                         .foregroundStyle(Palette.amber)
                 } else if isSelected {
                     Image(systemName: "checkmark.circle.fill")
-                        .font(.system(size: 18))
+                        .font(.body)
                         .foregroundStyle(Palette.accent)
                 }
             }
