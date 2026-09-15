@@ -32,9 +32,18 @@ enum BackendConfig {
         Bundle.main.path(forResource: "GoogleService-Info", ofType: "plist") != nil
     }
 
-    /// RevenueCat public SDK key. Set `RevenueCat-API-Key` in Info.plist, or
-    /// override here for a development build.
-    static var revenueCatAPIKey: String {
-        (Bundle.main.object(forInfoDictionaryKey: "RevenueCatAPIKey") as? String) ?? ""
-    }
+    /// RevenueCat public SDK key, `appl_…`.
+    ///
+    /// Not a secret: it identifies the app rather than authenticating a user, and
+    /// is designed to ship inside the binary. Set it here.
+    ///
+    /// Deliberately *not* read from Info.plist. `INFOPLIST_KEY_<name>` build
+    /// settings only populate Apple's own Info.plist keys — a custom key is
+    /// silently dropped from the generated plist even when the setting is
+    /// defined, which fails late and confusingly (an empty key reaching
+    /// `Purchases.configure`).
+    static let revenueCatAPIKey = ""
+
+    /// True once `revenueCatAPIKey` has been filled in.
+    static var isStoreConfigured: Bool { !revenueCatAPIKey.isBlank }
 }

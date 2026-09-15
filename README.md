@@ -12,8 +12,9 @@ and what parts or procedures are needed.
 
 The AI assistant is powered by a small Firebase backend (see
 [`docs/BACKEND.md`](docs/BACKEND.md) and [`server/README.md`](server/README.md)).
-The app builds and runs **without** it — with no `GoogleService-Info.plist` it
-falls back to the built-in demo assistant.
+**Setting up Firebase and RevenueCat from scratch:
+[`docs/SETUP.md`](docs/SETUP.md).** The app builds and runs **without** any of it —
+with no `GoogleService-Info.plist` it falls back to the built-in demo assistant.
 
 ## Build & run
 

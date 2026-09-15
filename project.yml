@@ -83,10 +83,6 @@ targets:
         ENABLE_DEBUG_DYLIB: NO
         SUPPORTS_MACCATALYST: NO
         INCLUDE_ONLY_APPLE_FRAMEWORKS: YES
-        # RevenueCat public SDK key (appl_…). Supply it at build time:
-        #   xcodebuild ... REVENUECAT_API_KEY=appl_xxx
-        # or set it in the Xcode scheme's environment. Empty disables the store.
-        INFOPLIST_KEY_RevenueCatAPIKey: "$(REVENUECAT_API_KEY)"
       configs:
         # App Attest is only needed for Release, and it requires a paid Apple
         # Developer Program membership: personal teams cannot sign for
