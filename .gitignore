@@ -21,3 +21,8 @@ OBDiag/Resources/Secrets.plist
 server/functions/.env
 server/functions/.env.*
 !server/functions/.env.example
+
+# Per-project Firebase target
+server/.firebaserc
+!server/.firebaserc.example
+

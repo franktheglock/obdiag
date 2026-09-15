@@ -83,7 +83,8 @@ point the CLI and app at it.
 3. Point the app and CLI at your project:
 
    ```sh
-   npx -y firebase-tools@latest use obdiag-app
+   cp server/.firebaserc.example server/.firebaserc   # then set your project id
+   npx -y firebase-tools@latest use <your-project-id>
    ```
 
    | File | Setting | Currently |
