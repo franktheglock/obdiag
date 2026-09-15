@@ -189,15 +189,34 @@ export async function grantCredits(
   const ref = userRef(uid);
 
   return db.runTransaction(async (tx) => {
+    // Every read has to happen before any write: Firestore throws
+    // "transactions require all reads to be executed before all writes".
     const snapshot = await tx.get(ref);
-    if (!snapshot.exists) {
-      throw new DomainError("not-found", "Account not found.");
-    }
-    const account = snapshot.data() as Account;
 
     const entryId = idempotencyKey ?? ref.collection(COLLECTIONS.ledger).doc().id;
     const entryRef = ref.collection(COLLECTIONS.ledger).doc(entryId);
     const existing = await tx.get(entryRef);
+
+    // A grant can legitimately arrive before the app has ever called in: a
+    // consumable bought straight after install, before the first
+    // getAccountSummary, or a webhook that simply beats the app to it. Treat the
+    // account as new rather than throwing — the customer has already paid, and
+    // RevenueCat gives up after five retries, so a failure loses their money.
+    const isNewAccount = !snapshot.exists;
+    const account: Account = isNewAccount
+      ? {
+          uid,
+          plan: "free",
+          credits: 0,
+          lifetimeGranted: 0,
+          lifetimeSpent: 0,
+          lastGrantPeriod: null,
+          entitlements: {},
+          createdAt: FieldValue.serverTimestamp(),
+          updatedAt: FieldValue.serverTimestamp(),
+        }
+      : (snapshot.data() as Account);
+
     if (existing.exists) {
       return { balance: account.credits, applied: false };
     }
@@ -215,6 +234,18 @@ export async function grantCredits(
     tx.set(
       ref,
       {
+        // A merge-set against a missing document only writes the fields given
+        // here, so seed the base fields explicitly when creating the account.
+        ...(isNewAccount
+          ? {
+              uid,
+              plan: "free" as PlanTier,
+              lifetimeSpent: 0,
+              lastGrantPeriod: null,
+              entitlements: {},
+              createdAt: FieldValue.serverTimestamp(),
+            }
+          : {}),
         credits: balance,
         lifetimeGranted:
           amount > 0 ? account.lifetimeGranted + amount : account.lifetimeGranted,

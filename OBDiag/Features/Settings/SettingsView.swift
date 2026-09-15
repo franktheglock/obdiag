@@ -13,9 +13,11 @@ enum SettingsRoute: Hashable {
 
 struct SettingsView: View {
     @Environment(AppEnvironment.self) private var env
+    /// Only used by the `-showSubscription` debug screenshot hook.
+    @State private var path = NavigationPath()
 
     var body: some View {
-        NavigationStack {
+        NavigationStack(path: $path) {
             List {
                 accountSection
                 subscriptionSection
@@ -135,6 +137,16 @@ struct SettingsView: View {
                 case .about: AboutView()
                 case .debugLog: DebugLogView()
                 }
+            }
+            .onAppear {
+                #if DEBUG
+                // Screenshot hook, alongside the existing -startSection and
+                // -attachDemoImage affordances: opens the subscribe screen
+                // without needing to tap through the list.
+                if ProcessInfo.processInfo.arguments.contains("-showSubscription"), path.isEmpty {
+                    path.append(SettingsRoute.subscription)
+                }
+                #endif
             }
         }
     }
