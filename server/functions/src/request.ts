@@ -26,9 +26,24 @@ const jsonValueSchema: z.ZodType<unknown> = z.lazy(() =>
   ]),
 );
 
+/**
+ * Anthropic-style cache breakpoint.
+ *
+ * Deliberately permissive here and validated in `sanitizeCacheControl`: a
+ * malformed or unrecognised marker should be dropped, not fail the whole chat
+ * request, since caching is an optimisation and never a correctness concern.
+ */
+const cacheControlSchema = z
+  .object({
+    type: z.string(),
+    ttl: z.string().nullish(),
+  })
+  .nullish();
+
 const textPartSchema = z.object({
   type: z.literal("text"),
   text: z.string(),
+  cache_control: cacheControlSchema.nullish(),
 });
 
 const imagePartSchema = z.object({
@@ -37,6 +52,7 @@ const imagePartSchema = z.object({
     z.string(),
     z.object({ url: z.string() }),
   ]),
+  cache_control: cacheControlSchema.nullish(),
 });
 
 const contentSchema = z.union([
@@ -121,11 +137,36 @@ export type ChatRequest = z.infer<typeof chatRequestSchema>;
 /* Sanitisation                                                               */
 /* -------------------------------------------------------------------------- */
 
-/** Server tools we permit, with hard caps on the parameters that cost money. */
+/**
+ * Server tools we permit, with hard caps on the parameters that cost money.
+ */
 const SERVER_TOOL_LIMITS: Record<string, Record<string, number>> = {
   "openrouter:web_search": { max_results: 5 },
   "openrouter:web_fetch": {},
 };
+
+/**
+ * Anthropic accepts at most four cache breakpoints per request; exceeding that
+ * is a hard 400. The client only ever sends two (end of the system block, end of
+ * the transcript), so anything beyond this budget is a client bug or an attack.
+ */
+const MAX_CACHE_BREAKPOINTS = 4;
+
+/**
+ * Validate a cache breakpoint marker. Anthropic's `cache_control` is a small
+ * closed shape, so anything unrecognised is dropped rather than forwarded.
+ */
+function sanitizeCacheControl(
+  value: unknown,
+): Record<string, unknown> | undefined {
+  if (typeof value !== "object" || value === null) return undefined;
+  const record = value as Record<string, unknown>;
+  if (record.type !== "ephemeral") return undefined;
+  const marker: Record<string, unknown> = { type: "ephemeral" };
+  // The 1-hour TTL is opt-in and costs more to write, so it must be explicit.
+  if (record.ttl === "5m" || record.ttl === "1h") marker.ttl = record.ttl;
+  return marker;
+}
 
 export class RequestError extends Error {
   constructor(message: string) {
@@ -151,7 +192,10 @@ function sanitizeServerTool(tool: {
   return { type: tool.type, parameters };
 }
 
-function sanitizeContent(content: unknown): unknown {
+function sanitizeContent(
+  content: unknown,
+  budget: { breakpoints: number },
+): unknown {
   if (typeof content === "string") return content;
   if (!Array.isArray(content)) return content;
 
@@ -160,8 +204,24 @@ function sanitizeContent(content: unknown): unknown {
     if (typeof part !== "object" || part === null) continue;
     const record = part as Record<string, unknown>;
 
+    // Prompt-cache breakpoints must survive the rebuild. Dropping them here
+    // would silently disable caching for every managed request — the failure
+    // mode is invisible (correct answers, higher bill) so it is worth being
+    // explicit about it.
+    let cacheControl: Record<string, unknown> | undefined;
+    if (record.cache_control !== undefined) {
+      if (budget.breakpoints < MAX_CACHE_BREAKPOINTS) {
+        cacheControl = sanitizeCacheControl(record.cache_control);
+        if (cacheControl) budget.breakpoints += 1;
+      }
+    }
+
     if (record.type === "text" && typeof record.text === "string") {
-      parts.push({ type: "text", text: record.text });
+      parts.push({
+        type: "text",
+        text: record.text,
+        ...(cacheControl ? { cache_control: cacheControl } : {}),
+      });
       continue;
     }
 
@@ -178,7 +238,11 @@ function sanitizeContent(content: unknown): unknown {
       if (!url.startsWith("data:image/") && !url.startsWith("https://")) {
         throw new RequestError("Unsupported image attachment.");
       }
-      parts.push({ type: "image_url", image_url: { url } });
+      parts.push({
+        type: "image_url",
+        image_url: { url },
+        ...(cacheControl ? { cache_control: cacheControl } : {}),
+      });
     }
   }
   return parts;
@@ -201,9 +265,10 @@ export function sanitizeRequest(
 ): SanitizeResult {
   let promptChars = 0;
   const messages: unknown[] = [];
+  const budget = { breakpoints: 0 };
 
   for (const message of request.messages) {
-    const content = sanitizeContent(message.content);
+    const content = sanitizeContent(message.content, budget);
     if (typeof content === "string") promptChars += content.length;
 
     const toolCalls = message.tool_calls

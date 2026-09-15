@@ -15,6 +15,32 @@ struct WireToolCall: Codable, Hashable, Identifiable {
     enum CodingKeys: String, CodingKey { case id, type, function }
 }
 
+/// A content block. Used to place explicit prompt-cache breakpoints, which
+/// Anthropic models require (`cache_control: {"type": "ephemeral"}`).
+///
+/// A breakpoint marks the end of a reusable prefix: the provider caches
+/// everything up to and including that block and serves it at the much cheaper
+/// cache-read rate on later turns. Other providers cache automatically and
+/// ignore the marker, so it is only attached when the model needs it.
+struct WireContentBlock: Codable, Hashable {
+    var type: String = "text"
+    var text: String
+    var cacheControl: CacheControl?
+
+    struct CacheControl: Codable, Hashable {
+        var type: String = "ephemeral"
+    }
+
+    enum CodingKeys: String, CodingKey {
+        case type, text
+        case cacheControl = "cache_control"
+    }
+
+    static func text(_ text: String, cacheBreakpoint: Bool = false) -> WireContentBlock {
+        WireContentBlock(text: text, cacheControl: cacheBreakpoint ? CacheControl() : nil)
+    }
+}
+
 struct WireMessage: Codable {
     var role: String
     var content: String?
@@ -23,6 +49,9 @@ struct WireMessage: Codable {
     var toolCalls: [WireToolCall]?
     var toolCallID: String?
     var name: String?
+    /// Explicit multi-block content. Takes precedence over `content` when set,
+    /// and is how cache breakpoints are expressed.
+    var blocks: [WireContentBlock]?
 
     enum CodingKeys: String, CodingKey {
         case role, content, name
@@ -36,7 +65,8 @@ struct WireMessage: Codable {
         imageDataURLs: [String] = [],
         toolCalls: [WireToolCall]? = nil,
         toolCallID: String? = nil,
-        name: String? = nil
+        name: String? = nil,
+        blocks: [WireContentBlock]? = nil
     ) {
         self.role = role
         self.content = content
@@ -44,6 +74,7 @@ struct WireMessage: Codable {
         self.toolCalls = toolCalls
         self.toolCallID = toolCallID
         self.name = name
+        self.blocks = blocks
     }
 
     /// Multimodal content is emitted as the OpenAI/OpenRouter part array;
@@ -52,7 +83,9 @@ struct WireMessage: Codable {
         var container = encoder.container(keyedBy: CodingKeys.self)
         try container.encode(role, forKey: .role)
 
-        if !imageDataURLs.isEmpty {
+        if let blocks, !blocks.isEmpty {
+            try container.encode(blocks, forKey: .content)
+        } else if !imageDataURLs.isEmpty {
             var parts: [JSONValue] = []
             if let content, !content.isEmpty {
                 parts.append(.object([
@@ -84,12 +117,44 @@ struct WireMessage: Codable {
         toolCalls = try container.decodeIfPresent([WireToolCall].self, forKey: .toolCalls)
         toolCallID = try container.decodeIfPresent(String.self, forKey: .toolCallID)
         name = try container.decodeIfPresent(String.self, forKey: .name)
+        blocks = nil
+    }
+
+    /// A system message whose fixed part is marked as a cache breakpoint and
+    /// whose variable part follows it uncached.
+    static func system(
+        stable: String,
+        volatile: String,
+        cacheStable: Bool
+    ) -> WireMessage {
+        guard cacheStable, !volatile.isEmpty else {
+            if cacheStable {
+                return WireMessage(role: "system", blocks: [.text(stable, cacheBreakpoint: true)])
+            }
+            return WireMessage(role: "system", content: volatile.isEmpty ? stable : stable + "\n\n" + volatile)
+        }
+        return WireMessage(role: "system", blocks: [
+            .text(stable, cacheBreakpoint: true),
+            .text(volatile)
+        ])
+    }
+
+    /// Re-emits this message with a cache breakpoint at its end, so a later turn
+    /// can reuse the whole transcript prefix. Only meaningful for text content;
+    /// returns self unchanged otherwise.
+    func markingCacheBreakpoint() -> WireMessage {
+        guard blocks == nil, imageDataURLs.isEmpty, toolCalls == nil else { return self }
+        let text = content ?? ""
+        guard !text.isEmpty else { return self }
+        var copy = self
+        copy.content = nil
+        copy.blocks = [.text(text, cacheBreakpoint: true)]
+        return copy
     }
 
     static func system(_ content: String) -> WireMessage {
         WireMessage(role: "system", content: content)
     }
-
     static func user(_ content: String, images: [String] = []) -> WireMessage {
         WireMessage(role: "user", content: content, imageDataURLs: images)
     }

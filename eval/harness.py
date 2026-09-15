@@ -161,9 +161,26 @@ METRIC_SYMBOLS = {"celsius": "°C", "kph": "km/h", "kpa": "kPa", "airflow": "g/s
 
 def build_system_prompt(scenario: dict[str, Any], obd_state: "OBDState", *, has_tools: bool = True,
                         units: str = "imperial") -> str:
-    vehicle = scenario.get("vehicle", {})
-    obd = scenario.get("obd", {})
-    answers = scenario.get("onboarding", {})
+    """Mirrors `PromptBuilder.systemPrompt`.
+
+    Split into a stable block (cacheable: nothing in it may vary between turns)
+    and a volatile block (vehicle, codes, connection, date). The app sends these
+    as two content blocks with a prompt-cache breakpoint between them; the
+    replica only needs the text, but it keeps the same split so drift in either
+    half is visible.
+
+    Note there is deliberately no live sensor snapshot. The app removed it: the
+    readings churn continuously and the per-second age stamp invalidated the
+    whole cacheable prefix on every turn. The model is told to call
+    `get_live_data` instead.
+    """
+    sections = _stable_prompt_sections(has_tools, units, scenario)
+    sections += _volatile_prompt_sections(scenario, obd_state, units)
+    return "\n\n".join(sections)
+
+
+def _stable_prompt_sections(has_tools: bool, units: str, scenario: dict[str, Any]) -> list[str]:
+    """Fixed text. Must stay byte-identical across turns or the cache misses."""
     sections: list[str] = []
 
     sections.append(
@@ -172,6 +189,45 @@ def build_system_prompt(scenario: dict[str, Any], obd_state: "OBDState", *, has_
         "using the vehicle's actual OBD-II data. You are practical, calm and specific — never "
         "alarmist, never vague."
     )
+
+    if has_tools:
+        sections.append("\n".join([
+            "## Tools",
+            "Use tools instead of guessing. In particular:",
+            "- `get_fault_codes` and `get_live_data` for anything about the actual car. Prefer calling them before answering diagnostic questions.",
+            "- Web search for recalls, TSBs, specs, fluid capacities, torque values, part numbers and procedures. Manufacturer-specific data changes by model year — verify it.",
+            "- `search_videos` when a visual walkthrough would help a DIY repair.",
+            "- `search_parts` for purchase links, current prices and tool recommendations.",
+            "- Read specific URLs when a search snippet is not enough.",
+            "- `ask_user` when a missing fact (symptom timing, recent work, tools on hand) blocks a reliable answer. Ask at most one focused question and offer concrete options.",
+            "Never invent part numbers, torque specs or TSB numbers. If you could not verify something, say so explicitly.",
+        ]))
+
+    sections.append("\n".join([
+        "## Answer style",
+        "- Lead with the bottom line: what it means and how urgent it is.",
+        "- Structure longer answers with short markdown headings, e.g. **What it means**, **Likely causes**, **Check this**, **Parts & tools**, **Watch this**. Skip headings for simple replies.",
+        "- End with a concrete next action the owner can take, and what to watch for afterwards.",
+        "- Prefer bullets over paragraphs. Keep it tight.",
+        "- When you used sources, cite them inline as markdown links and list the best 3-5 at the end under \"Sources\".",
+        f"- Use the user's units ({units.title()}) and a US context.",
+        "- The user can attach photos (warning lights, leaks, damaged parts, labels, scan-tool screens). When a photo is present, say what you observe in it and tie that to the data before advising.",
+        "- Never advise disabling emissions equipment. Flag safety-critical issues (brakes, steering, fuel leaks, overheating, airbags) clearly and tell the owner to stop driving when appropriate.",
+    ]))
+
+    style = scenario.get("onboarding", {}).get("style_guide")
+    if style:
+        sections.append(f"## Owner preferences\n{style}")
+
+    return sections
+
+
+def _volatile_prompt_sections(scenario: dict[str, Any], obd_state: "OBDState",
+                              units: str) -> list[str]:
+    """Everything that can change between turns, least volatile first."""
+    vehicle = scenario.get("vehicle", {})
+    obd = scenario.get("obd", {})
+    sections: list[str] = []
 
     if vehicle:
         lines = ["## Vehicle"]
@@ -214,15 +270,13 @@ def build_system_prompt(scenario: dict[str, Any], obd_state: "OBDState", *, has_
                 code_lines.append(line)
         sections.append("\n".join(code_lines))
 
-        if obd_state.readings:
-            snapshot = [f"## Live data snapshot (metric stored, converted to {units.title()})"]
-            for kind, reading in obd_state.readings.items():
-                rendered = render_reading(kind, reading.value, units)
-                if rendered:
-                    snapshot.append(rendered)
-            if obd.get("demo"):
-                snapshot.append("- NOTE: this data comes from the built-in demo simulator.")
-            sections.append("\n".join(snapshot))
+        connection = ["## Connection",
+                      "An OBD-II adapter is connected. Call `get_live_data` for current sensor readings "
+                      "and `get_fault_codes` for present codes before diagnosing."]
+        if obd.get("demo"):
+            connection.append("The adapter is the built-in demo simulator, so treat the values as "
+                              "illustrative rather than from a real vehicle.")
+        sections.append("\n".join(connection))
     else:
         sections.append(
             "## Connection\n"
@@ -231,38 +285,10 @@ def build_system_prompt(scenario: dict[str, Any], obd_state: "OBDState", *, has_
             "`get_live_data` and `get_fault_codes` will report that state."
         )
 
-    if has_tools:
-        sections.append("\n".join([
-            "## Tools",
-            "Use tools instead of guessing. In particular:",
-            "- `get_fault_codes` and `get_live_data` for anything about the actual car. Prefer calling them before answering diagnostic questions.",
-            "- Web search for recalls, TSBs, specs, fluid capacities, torque values, part numbers and procedures. Manufacturer-specific data changes by model year — verify it.",
-            "- `search_videos` when a visual walkthrough would help a DIY repair.",
-            "- `search_parts` for purchase links, current prices and tool recommendations.",
-            "- Read specific URLs when a search snippet is not enough.",
-            "- `ask_user` when a missing fact (symptom timing, recent work, tools on hand) blocks a reliable answer. Ask at most one focused question and offer concrete options.",
-            "Never invent part numbers, torque specs or TSB numbers. If you could not verify something, say so explicitly.",
-        ]))
-
-    sections.append("\n".join([
-        "## Answer style",
-        "- Lead with the bottom line: what it means and how urgent it is.",
-        "- Structure longer answers with short markdown headings, e.g. **What it means**, **Likely causes**, **Check this**, **Parts & tools**, **Watch this**. Skip headings for simple replies.",
-        "- End with a concrete next action the owner can take, and what to watch for afterwards.",
-        "- Prefer bullets over paragraphs. Keep it tight.",
-        "- When you used sources, cite them inline as markdown links and list the best 3-5 at the end under \"Sources\".",
-        f"- Use the user's units ({units.title()}) and a US context.",
-        "- The user can attach photos (warning lights, leaks, damaged parts, labels, scan-tool screens). When a photo is present, say what you observe in it and tie that to the data before advising.",
-        "- Never advise disabling emissions equipment. Flag safety-critical issues (brakes, steering, fuel leaks, overheating, airbags) clearly and tell the owner to stop driving when appropriate.",
-    ]))
-
-    style = answers.get("style_guide")
-    if style:
-        sections.append(f"## Owner preferences\n{style}")
-
     from datetime import datetime
-    sections.append("Current date: " + datetime.now().strftime("%A, %B %-d, %Y at %-I:%M %p") + ".")
-    return "\n\n".join(sections)
+    sections.append("Current date: " + datetime.now().strftime("%A, %B %-d, %Y") + ".")
+
+    return sections
 
 
 def render_reading(kind: str, value: float, units: str) -> Optional[str]:
@@ -585,29 +611,50 @@ class AgentHarness:
             tool_names=tool_names, tool_corpus="\n".join(corpus),
             prompt_tokens=prompt_tokens, completion_tokens=completion_tokens,
             cached_tokens=cached_tokens, cost_usd=cost,
-            credits=credits_for(cost, self.model, turns), latency=latency, error=error,
+            credits=credits_for(prompt_tokens + completion_tokens, self.model), latency=latency, error=error,
         )
 
 
 # ---------------------------------------------------------------------------
-# Credits — mirrors CreditPricing
+# Credits — mirrors CreditPricing (app) and plans.ts (server)
 # ---------------------------------------------------------------------------
+#
+# Billing is token-pegged, not dollar-pegged:
+#
+#     credits = max(1, ceil(tokens / 1000 * tier_multiplier))
+#
+# The multiplier belongs to the *model tier*, not the plan. The plan only
+# decides the monthly allowance and the highest tier it may call.
+#
+# Note this bills *all* tokens, including prompt-cache reads. The provider
+# charges far less for a cache hit, so caching widens margin without changing
+# what the user pays — which is why the hit rate is worth measuring.
 
-USD_PER_CREDIT = 0.001
-PLAN_MULTIPLIER = {"free": 1.5, "plus": 1.2, "pro": 1.0}
+TOKENS_PER_CREDIT = 1000
+MINIMUM_CHARGE = 1
+MODEL_TIER_MULTIPLIER = {"flash": 0.33, "plus": 1.0, "max": 5.0}
+PLAN_MAX_MODEL_TIER = {"free": "flash", "plus": "plus", "pro": "max"}
 
 
-def credits_for(cost_usd: float, model: dict[str, Any], turns: list[Turn], plan: str = "plus") -> int:
+def tier_for_price(prompt_price_per_million: float, is_free: bool = False) -> str:
+    """Flash < $1/M · Plus $1–5/M · Max > $5/M. Mirrors the app's rule."""
+    if is_free or prompt_price_per_million <= 0:
+        return "flash"
+    if prompt_price_per_million < 1:
+        return "flash"
+    if prompt_price_per_million <= 5:
+        return "plus"
+    return "max"
+
+
+def credits_for(tokens: int, model: dict[str, Any]) -> int:
     import math
 
-    if cost_usd <= 0:
-        # Providers that do not report cost: price it from the catalog.
-        prompt = sum(t.usage.get("prompt_tokens", 0) for t in turns)
-        completion = sum(t.usage.get("completion_tokens", 0) for t in turns)
-        cost_usd = (prompt * model.get("inputPrice", 0) + completion * model.get("outputPrice", 0)) / 1_000_000
-    if cost_usd <= 0:
+    if tokens <= 0:
         return 0
-    return max(1, math.ceil(cost_usd / USD_PER_CREDIT * PLAN_MULTIPLIER.get(plan, 1.0)))
+    tier = tier_for_price(model.get("inputPrice", 0.0), bool(model.get("isFree", False)))
+    raw = tokens / TOKENS_PER_CREDIT * MODEL_TIER_MULTIPLIER[tier]
+    return max(MINIMUM_CHARGE, math.ceil(raw))
 
 
 # ---------------------------------------------------------------------------

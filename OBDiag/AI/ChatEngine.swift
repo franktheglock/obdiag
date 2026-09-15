@@ -495,7 +495,13 @@ final class ChatEngine {
             search: search,
             hasTools: hasTools
         )
-        var wire: [WireMessage] = [.system(system)]
+        var wire: [WireMessage] = [
+            .system(
+                stable: system.stable,
+                volatile: system.volatile,
+                cacheStable: model.supportsExplicitPromptCaching
+            )
+        ]
         guard let conversation = conversations.conversation(withID: conversationID) else { return wire }
 
         for message in conversation.messages {
@@ -533,7 +539,28 @@ final class ChatEngine {
                 continue
             }
         }
-        return trim(wire)
+        return marked(trim(wire), explicitCaching: model.supportsExplicitPromptCaching)
+    }
+
+    /// Places a cache breakpoint at the end of the transcript, so the next turn
+    /// can reuse the whole prefix at the cache-read rate.
+    ///
+    /// This is the one that matters most in practice: in an agentic loop the
+    /// transcript grows by every tool result, and without a breakpoint here all
+    /// of it is re-billed at full input price on every turn. Combined with the
+    /// breakpoint on the system block, a turn only pays full price for the few
+    /// hundred tokens added since the last one.
+    private func marked(_ wire: [WireMessage], explicitCaching: Bool) -> [WireMessage] {
+        guard explicitCaching else { return wire }
+        guard let index = wire.lastIndex(where: { message in
+            message.role != "system"
+                && message.blocks == nil
+                && message.toolCalls == nil
+                && !(message.content ?? "").isEmpty
+        }) else { return wire }
+        var copy = wire
+        copy[index] = copy[index].markingCacheBreakpoint()
+        return copy
     }
 
     /// Keeps the system prompt plus the most recent turns, never starting on an

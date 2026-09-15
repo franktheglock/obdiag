@@ -65,6 +65,13 @@ struct AIModel: Identifiable, Codable, Hashable, Sendable {
 
     var tierIsEstimated: Bool { !isFree && promptPricePerToken == 0 }
 
+    /// Whether this model needs an explicit `cache_control` breakpoint to use
+    /// prompt caching. Anthropic's API requires the marker; OpenAI, Google and
+    /// xAI cache long prefixes automatically and ignore it.
+    var supportsExplicitPromptCaching: Bool {
+        provider.localizedCaseInsensitiveContains("anthropic")
+    }
+
     var priceLabel: String {
         if isFree { return "Free" }
         let perMillion = (promptPricePerToken + completionPricePerToken) / 2 * 1_000_000

@@ -97,10 +97,23 @@ def phrase_present(phrase: str, haystack: set[str], threshold: float = 0.7) -> b
     return hits / len(tokens) >= threshold
 
 
+def swift_number(value: float) -> str:
+    """Render a number the way Swift source is likely to spell it.
+
+    `1.0` and `1` are the same Double, and authors write both, so compare
+    against the shortest form rather than a fixed decimal count.
+    """
+    return str(int(value)) if float(value).is_integer() else repr(float(value))
+
+
 def main() -> int:
     sys.path.insert(0, str(Path(__file__).parent))
     import harness  # noqa: E402
-    from harness import PLAN_MULTIPLIER, USD_PER_CREDIT  # noqa: E402
+    from harness import (  # noqa: E402
+        MINIMUM_CHARGE,
+        MODEL_TIER_MULTIPLIER,
+        TOKENS_PER_CREDIT,
+    )
 
     failures: list[str] = []
     warnings: list[str] = []
@@ -169,15 +182,21 @@ def main() -> int:
         for sentence in unmatched[:6]:
             print(f"  unmatched: {sentence.strip()[:110]}")
 
-    # 3. Credit constants — strict.
+    # 3. Credit constants — strict. The app bills per token with a per-tier
+    # multiplier; if these drift apart the harness reports costs that the app
+    # would never charge.
     if USER_PROFILE.exists():
         profile = USER_PROFILE.read_text()
-        if abs(USD_PER_CREDIT - 0.001) > 1e-9:
-            failures.append("credit unit differs from the app's USD_PER_CREDIT")
-        for plan, multiplier in PLAN_MULTIPLIER.items():
-            expected = f"case .{plan}: return {multiplier}"
+        if TOKENS_PER_CREDIT != 1000:
+            failures.append("harness TOKENS_PER_CREDIT no longer matches the app's 1,000")
+        if "static let tokensPerCredit: Double = 1_000" not in profile:
+            failures.append("app's CreditPricing.tokensPerCredit is not 1,000")
+        for tier, multiplier in MODEL_TIER_MULTIPLIER.items():
+            expected = f"case .{tier}: return {swift_number(multiplier)}"
             if expected not in profile:
-                warnings.append(f"plan multiplier for '{plan}' may have changed (expected {multiplier})")
+                failures.append(f"tier multiplier for '{tier}' differs from the app (expected {multiplier})")
+        if MINIMUM_CHARGE != 1:
+            failures.append("minimum charge differs from the app's 1 credit")
 
     for warning in warnings:
         print(f"warning: {warning}")

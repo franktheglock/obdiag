@@ -178,6 +178,90 @@ describe("sanitizeRequest", () => {
     expect(messages[0]!.content).toHaveLength(2);
   });
 
+  it("preserves cache breakpoints instead of silently dropping them", () => {
+    const { payload } = sanitizeRequest(
+      parse({
+        model: "m",
+        messages: [
+          {
+            role: "system",
+            content: [
+              { type: "text", text: "fixed instructions", cache_control: { type: "ephemeral" } },
+              { type: "text", text: "vehicle context" },
+            ],
+          },
+          { role: "user", content: "why is it idling rough" },
+        ],
+      }),
+      { planMaxTokens: PLAN_MAX_OUTPUT },
+    );
+    const messages = payload.messages as Array<{ content: Array<Record<string, unknown>> }>;
+    expect(messages[0]!.content[0]).toMatchObject({
+      type: "text",
+      text: "fixed instructions",
+      cache_control: { type: "ephemeral" },
+    });
+    // The volatile block after the breakpoint must stay uncached.
+    expect(messages[0]!.content[1]).not.toHaveProperty("cache_control");
+  });
+
+  it("forwards an explicit 1h cache TTL", () => {
+    const { payload } = sanitizeRequest(
+      parse({
+        model: "m",
+        messages: [
+          {
+            role: "system",
+            content: [
+              { type: "text", text: "fixed", cache_control: { type: "ephemeral", ttl: "1h" } },
+            ],
+          },
+          { role: "user", content: "hi" },
+        ],
+      }),
+      { planMaxTokens: PLAN_MAX_OUTPUT },
+    );
+    const messages = payload.messages as Array<{ content: Array<Record<string, unknown>> }>;
+    expect(messages[0]!.content[0]).toMatchObject({
+      cache_control: { type: "ephemeral", ttl: "1h" },
+    });
+  });
+
+  it("drops a malformed cache breakpoint rather than forwarding it", () => {
+    const { payload } = sanitizeRequest(
+      parse({
+        model: "m",
+        messages: [
+          {
+            role: "system",
+            content: [{ type: "text", text: "fixed", cache_control: { type: "forever" } }],
+          },
+          { role: "user", content: "hi" },
+        ],
+      }),
+      { planMaxTokens: PLAN_MAX_OUTPUT },
+    );
+    const messages = payload.messages as Array<{ content: Array<Record<string, unknown>> }>;
+    expect(messages[0]!.content[0]).not.toHaveProperty("cache_control");
+  });
+
+  it("caps cache breakpoints, which Anthropic rejects beyond four", () => {
+    const messages = Array.from({ length: 8 }, (_, i) => ({
+      role: "user" as const,
+      content: [
+        { type: "text" as const, text: `turn ${i}`, cache_control: { type: "ephemeral" as const } },
+      ],
+    }));
+    const { payload } = sanitizeRequest(parse({ model: "m", messages }), {
+      planMaxTokens: PLAN_MAX_OUTPUT,
+    });
+    const sent = payload.messages as Array<{ content: Array<Record<string, unknown>> }>;
+    const breakpoints = sent
+      .flatMap((message) => message.content)
+      .filter((part) => part.cache_control !== undefined).length;
+    expect(breakpoints).toBe(4);
+  });
+
   it("rejects an oversized image attachment", () => {
     const huge = `data:image/jpeg;base64,${"A".repeat(7_000_000)}`;
     expect(() =>
