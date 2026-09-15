@@ -43,7 +43,7 @@ struct AccountRequiredView: View {
         VStack(alignment: .leading, spacing: 14) {
             HStack(spacing: 10) {
                 Image(systemName: "person.crop.circle.badge.checkmark")
-                    .font(.system(size: 18, weight: .semibold))
+                    .font(.body.weight(.semibold))
                     .foregroundStyle(Palette.accent)
                 Text("Sign in to continue")
                     .font(.obHeadline)
@@ -67,7 +67,7 @@ struct AccountRequiredView: View {
                 .foregroundStyle(Palette.textTertiary)
         }
         .padding(16)
-        .panel(cornerRadius: 16)
+        .panel()
     }
 }
 
@@ -79,7 +79,7 @@ struct AccountSummaryView: View {
         VStack(alignment: .leading, spacing: 12) {
             HStack(spacing: 10) {
                 Image(systemName: "person.crop.circle.fill.badge.checkmark")
-                    .font(.system(size: 18, weight: .semibold))
+                    .font(.body.weight(.semibold))
                     .foregroundStyle(Palette.success)
                 VStack(alignment: .leading, spacing: 2) {
                     Text("Signed in")
@@ -97,6 +97,6 @@ struct AccountSummaryView: View {
             }
         }
         .padding(16)
-        .panel(cornerRadius: 16)
+        .panel()
     }
 }

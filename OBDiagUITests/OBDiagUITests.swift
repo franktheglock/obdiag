@@ -104,7 +104,7 @@ final class OBDiagUITests: XCTestCase {
     func testGarageSelectionOpensDashboard() {
         let app = launch(["-uiDemo", "-startSection=garage"])
 
-        XCTAssertTrue(app.staticTexts["Your vehicles"].waitForExistence(timeout: 10))
+        XCTAssertTrue(app.navigationBars["Garage"].waitForExistence(timeout: 10))
         let card = app.staticTexts["Daily driver"].firstMatch
         XCTAssertTrue(card.waitForExistence(timeout: 10))
         card.tap()

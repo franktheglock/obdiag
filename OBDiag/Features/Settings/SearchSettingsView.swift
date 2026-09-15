@@ -26,7 +26,7 @@ struct SearchSettingsView: View {
                             .foregroundStyle(Palette.accent)
                             .frame(width: 24)
                         SecureField("TinyFish API key", text: $tinyFishKeyField)
-                            .font(.obMono(13))
+                            .obMono(13)
                             .textInputAutocapitalization(.never)
                             .autocorrectionDisabled()
                         Button("Save") {
@@ -44,7 +44,7 @@ struct SearchSettingsView: View {
                                 .font(.obCallout)
                             Spacer()
                             Image(systemName: "chevron.right")
-                                .font(.system(size: 12, weight: .semibold))
+                                .font(.caption.weight(.semibold))
                                 .foregroundStyle(Palette.textTertiary)
                         }
                     }
@@ -64,7 +64,7 @@ struct SearchSettingsView: View {
                         get: { env.settings.regionCode },
                         set: { env.settings.regionCode = String($0.uppercased().prefix(2)) }
                     ))
-                    .font(.obMono(14))
+                    .obMono(14)
                     .multilineTextAlignment(.trailing)
                     .frame(width: 60)
                 }
@@ -76,7 +76,7 @@ struct SearchSettingsView: View {
                         get: { env.settings.languageCode },
                         set: { env.settings.languageCode = String($0.lowercased().prefix(2)) }
                     ))
-                    .font(.obMono(14))
+                    .obMono(14)
                     .multilineTextAlignment(.trailing)
                     .frame(width: 60)
                 }
@@ -142,7 +142,7 @@ struct SearchSettingsView: View {
         } label: {
             HStack(spacing: 13) {
                 Image(systemName: backend.icon)
-                    .font(.system(size: 16, weight: .semibold))
+                    .font(.callout.weight(.semibold))
                     .foregroundStyle(env.settings.searchBackend == backend ? Palette.accent : Palette.textSecondary)
                     .frame(width: 26)
                 VStack(alignment: .leading, spacing: 2) {
@@ -188,7 +188,7 @@ struct ModelSettingsView: View {
             Section {
                 HStack(spacing: 14) {
                     Image(systemName: env.chat.selectedModel.tier.icon)
-                        .font(.system(size: 20, weight: .semibold))
+                        .font(.title3.weight(.semibold))
                         .foregroundStyle(Palette.accent)
                     VStack(alignment: .leading, spacing: 3) {
                         Text(env.chat.selectedModel.name)
@@ -226,7 +226,7 @@ struct ModelSettingsView: View {
                                                 .foregroundStyle(Palette.textPrimary)
                                             if model.supportsImages {
                                                 Image(systemName: "eye.fill")
-                                                    .font(.system(size: 9, weight: .bold))
+                                                    .font(.caption2.weight(.bold))
                                                     .foregroundStyle(Palette.accent)
                                                     .accessibilityLabel("Can view images")
                                             }

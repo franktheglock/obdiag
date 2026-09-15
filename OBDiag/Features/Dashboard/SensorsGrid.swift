@@ -4,11 +4,13 @@ import Charts
 /// Adaptive grid of live sensor tiles.
 struct SensorsGrid: View {
     @Environment(AppEnvironment.self) private var env
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     let kinds: [SensorKind]
     var onSelect: (SensorKind) -> Void
 
     private var columns: [GridItem] {
-        [GridItem(.adaptive(minimum: 158, maximum: 260), spacing: 12)]
+        let minimum: CGFloat = dynamicTypeSize.isAccessibilitySize ? 300 : 158
+        return [GridItem(.adaptive(minimum: minimum, maximum: 400), spacing: 12)]
     }
 
     var body: some View {
@@ -46,7 +48,7 @@ struct SensorTile: View {
             VStack(alignment: .leading, spacing: 8) {
                 HStack(spacing: 6) {
                     Image(systemName: definition.icon)
-                        .font(.system(size: 13, weight: .semibold))
+                        .font(.footnote.weight(.semibold))
                         .foregroundStyle(health == .inactive ? Palette.textTertiary : health.color)
                     Text(definition.shortName)
                         .font(.subheadline)
@@ -57,8 +59,7 @@ struct SensorTile: View {
 
                 HStack(alignment: .firstTextBaseline, spacing: 3) {
                     Text(valueText)
-                        .font(.system(size: 27, weight: .semibold))
-                        .monospacedDigit()
+                        .obMono(27, weight: .semibold)
                         .foregroundStyle(Palette.textPrimary)
                         .contentTransition(.numericText())
                         .animation(.snappy(duration: 0.2), value: reading?.value)
@@ -80,21 +81,21 @@ struct SensorTile: View {
             .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
-        .panel(cornerRadius: 18)
+        .panel()
         .accessibilityLabel("\(definition.name): \(valueText) \(unitText), \(health.label)")
     }
 
     private var valueText: String {
         guard let reading, reading.isValid else { return "—" }
+        if definition.measure == .text {
+            return SensorCatalog.fuelTypeName(UInt8(clamping: Int(reading.value)))
+        }
         let converter = UnitConverter(system: unitSystem)
         return converter.formatted(reading.value, kind: definition.measure)
     }
 
     private var unitText: String {
-        guard reading?.isValid == true else { return "" }
-        if definition.measure == .text {
-            return SensorCatalog.fuelTypeName(UInt8(clamping: Int(reading?.value ?? 0)))
-        }
+        guard reading?.isValid == true, definition.measure != .text else { return "" }
         return UnitConverter(system: unitSystem).symbol(for: definition.measure)
     }
 }
@@ -171,7 +172,7 @@ struct AllSensorsView: View {
                                 }
                             }
                             .padding(.vertical, 4)
-                            .panel(cornerRadius: 14)
+                            .panel()
                         }
                     }
                 }
@@ -200,7 +201,7 @@ struct SensorRow: View {
         Button(action: onSelect) {
             HStack(spacing: 12) {
                 Image(systemName: definition.icon)
-                    .font(.system(size: 14, weight: .semibold))
+                    .font(.subheadline.weight(.semibold))
                     .foregroundStyle(health == .inactive ? Palette.textTertiary : health.color)
                     .frame(width: 24)
                 VStack(alignment: .leading, spacing: 2) {
@@ -214,13 +215,15 @@ struct SensorRow: View {
                 }
                 Spacer(minLength: 6)
                 Text(valueText)
-                    .font(.obMono(16, weight: .semibold))
+                    .obMono(16, weight: .semibold)
                     .foregroundStyle(Palette.textPrimary)
                     .contentTransition(.numericText())
+                    .fixedSize()
                 Text(unitText)
                     .font(.obMicro)
                     .foregroundStyle(Palette.textTertiary)
-                    .frame(width: 34, alignment: .leading)
+                    .fixedSize()
+                    .frame(minWidth: 34, alignment: .leading)
             }
             .padding(.horizontal, 14)
             .padding(.vertical, 11)
@@ -233,15 +236,15 @@ struct SensorRow: View {
 
     private var valueText: String {
         guard let reading = env.obd.reading(kind), reading.isValid else { return "—" }
+        if definition.measure == .text {
+            return SensorCatalog.fuelTypeName(UInt8(clamping: Int(reading.value)))
+        }
         let converter = UnitConverter(system: env.settings.unitSystem)
         return converter.formatted(reading.value, kind: definition.measure)
     }
 
     private var unitText: String {
-        guard env.obd.reading(kind)?.isValid == true else { return "" }
-        if definition.measure == .text {
-            return SensorCatalog.fuelTypeName(UInt8(clamping: Int(env.obd.reading(kind)?.value ?? 0)))
-        }
+        guard env.obd.reading(kind)?.isValid == true, definition.measure != .text else { return "" }
         return UnitConverter(system: env.settings.unitSystem).symbol(for: definition.measure)
     }
 }
@@ -294,7 +297,7 @@ struct SensorDetailView: View {
         VStack(alignment: .leading, spacing: 8) {
             HStack(alignment: .firstTextBaseline, spacing: 6) {
                 Text(currentValueText)
-                    .font(.obMono(44, weight: .bold))
+                    .obMono(44, weight: .bold)
                     .foregroundStyle(Palette.textPrimary)
                     .contentTransition(.numericText())
                 Text(converter.symbol(for: definition.measure))
@@ -311,7 +314,7 @@ struct SensorDetailView: View {
         }
         .padding(16)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .panel(cornerRadius: 14)
+        .panel()
     }
 
     private var healthSeverity: Severity {
@@ -334,31 +337,38 @@ struct SensorDetailView: View {
             Text("Last \(history.count) samples")
                 .font(.obCaption)
                 .foregroundStyle(Palette.textTertiary)
+            // The fill is anchored to the visible axis floor, not to zero:
+            // the y domain is clamped to the recent readings, so a fill down
+            // to zero would draw far below the plot area.
+            let domain = chartDomain
+            let color = health == .inactive ? Palette.accent : health.color
             Chart {
                 ForEach(Array(history.enumerated()), id: \.offset) { index, value in
+                    AreaMark(
+                        x: .value("Sample", index),
+                        yStart: .value("Floor", domain.lowerBound),
+                        yEnd: .value(definition.shortName, value)
+                    )
+                    .interpolationMethod(.catmullRom)
+                    .foregroundStyle(
+                        LinearGradient(colors: [color.opacity(0.25), .clear],
+                                       startPoint: .top, endPoint: .bottom)
+                    )
                     LineMark(
                         x: .value("Sample", index),
                         y: .value(definition.shortName, value)
                     )
                     .interpolationMethod(.catmullRom)
-                    .foregroundStyle(health == .inactive ? Palette.accent : health.color)
-                    AreaMark(
-                        x: .value("Sample", index),
-                        y: .value(definition.shortName, value)
-                    )
-                    .interpolationMethod(.catmullRom)
-                    .foregroundStyle(
-                        LinearGradient(colors: [(health == .inactive ? Palette.accent : health.color).opacity(0.25), .clear],
-                                       startPoint: .top, endPoint: .bottom)
-                    )
+                    .foregroundStyle(color)
                 }
             }
-            .chartYScale(domain: chartDomain)
+            .chartYScale(domain: domain)
             .chartXAxis(.hidden)
             .frame(height: 170)
+            .clipped()
         }
         .padding(14)
-        .panel(cornerRadius: 14)
+        .panel()
     }
 
     private var chartDomain: ClosedRange<Double> {
@@ -381,7 +391,7 @@ struct SensorDetailView: View {
             }
         }
         .padding(14)
-        .panel(cornerRadius: 14)
+        .panel()
     }
 
     private func rangeValue(_ label: String, _ value: Double?, color: Color) -> some View {
@@ -390,7 +400,7 @@ struct SensorDetailView: View {
                 .font(.obMicro)
                 .foregroundStyle(Palette.textTertiary)
             Text(value.map { converter.formatted($0, kind: definition.measure) + " " + converter.symbol(for: definition.measure) } ?? "—")
-                .font(.obMono(15, weight: .semibold))
+                .obMono(15, weight: .semibold)
                 .foregroundStyle(value == nil ? Palette.textTertiary : color)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
@@ -413,12 +423,12 @@ struct SensorDetailView: View {
             }
         }
         .padding(14)
-        .panel(cornerRadius: 14)
+        .panel()
     }
 
     private var adviceCard: some View {
         VStack(alignment: .leading, spacing: 8) {
-            Label("Ask the assistant about this", systemImage: "sparkles")
+            Label("Ask the assistant about this", systemImage: "bubble.left.and.text.bubble.right")
                 .font(.obHeadline)
                 .foregroundStyle(Palette.textPrimary)
             Text("This reading is outside the healthy range. The AI assistant can relate it to your fault codes and tell you what to check.")
@@ -426,7 +436,7 @@ struct SensorDetailView: View {
                 .foregroundStyle(Palette.textSecondary)
         }
         .padding(14)
-        .panel(cornerRadius: 14, tint: Palette.amber.opacity(0.12))
+        .panel(tint: Palette.amber.opacity(0.12))
     }
 }
 

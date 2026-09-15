@@ -129,7 +129,7 @@ struct MessageRow: View {
             Spacer(minLength: 0)
         }
         .padding(13)
-        .panel(cornerRadius: 14, tint: Palette.amber.opacity(0.10))
+        .panel(tint: Palette.amber.opacity(0.10))
     }
 
     private var footer: some View {
@@ -150,8 +150,10 @@ struct MessageRow: View {
                     Haptics.tap()
                 } label: {
                     Image(systemName: "doc.on.doc")
-                        .font(.system(size: 11, weight: .semibold))
+                        .font(.caption.weight(.semibold))
                         .foregroundStyle(Palette.textTertiary)
+                        .frame(width: 44, height: 44)
+                        .contentShape(Rectangle())
                 }
                 .buttonStyle(.plain)
                 .accessibilityLabel("Copy answer")
@@ -176,11 +178,11 @@ struct ReasoningView: View {
             } label: {
                 HStack(spacing: 7) {
                     Image(systemName: "brain.head.profile")
-                        .font(.system(size: 12, weight: .semibold))
+                        .font(.caption.weight(.semibold))
                     Text(isStreaming ? "Thinking…" : "Thought process")
                         .font(.obMicro)
                     Image(systemName: isExpanded ? "chevron.up" : "chevron.down")
-                        .font(.system(size: 9, weight: .bold))
+                        .font(.caption2.weight(.bold))
                 }
                 .foregroundStyle(Palette.textTertiary)
                 .padding(.horizontal, 10)
@@ -239,7 +241,7 @@ struct ToolActivityView: View {
                             Spacer(minLength: 0)
                             if record.result != nil {
                                 Image(systemName: expanded.contains(record.id) ? "chevron.up" : "chevron.down")
-                                    .font(.system(size: 9, weight: .bold))
+                                    .font(.caption2.weight(.bold))
                                     .foregroundStyle(Palette.textTertiary)
                             }
                         }
@@ -249,7 +251,7 @@ struct ToolActivityView: View {
 
                     if expanded.contains(record.id), let result = record.result {
                         Text(prettyResult(result))
-                            .font(.obMono(11, weight: .regular))
+                            .obMono(11, weight: .regular)
                             .foregroundStyle(Palette.textTertiary)
                             .lineLimit(14)
                             .padding(10)
@@ -259,7 +261,7 @@ struct ToolActivityView: View {
                 }
                 .padding(.horizontal, 11)
                 .padding(.vertical, 8)
-                .glassEffect(.regular, in: .rect(cornerRadius: 14))
+                .inputSurface(cornerRadius: 14)
             }
         }
     }
@@ -269,15 +271,15 @@ struct ToolActivityView: View {
         switch record.status {
         case .running, .awaitingUser:
             ProgressView()
-                .controlSize(.mini)
+                .controlSize(.small)
                 .tint(Palette.accent)
         case .succeeded:
             Image(systemName: record.systemImage)
-                .font(.system(size: 11, weight: .semibold))
+                .font(.caption.weight(.semibold))
                 .foregroundStyle(Palette.success)
         case .failed:
             Image(systemName: "xmark.circle.fill")
-                .font(.system(size: 11, weight: .semibold))
+                .font(.caption.weight(.semibold))
                 .foregroundStyle(Palette.amber)
         }
     }
@@ -309,7 +311,7 @@ struct AttachmentThumbnail: View {
                 ZStack {
                     Rectangle().fill(Color.white.opacity(0.06))
                     Image(systemName: "photo")
-                        .font(.system(size: 18))
+                        .font(.body)
                         .foregroundStyle(Palette.textTertiary)
                 }
             }
@@ -411,7 +413,7 @@ struct CitationsView: View {
                                         image.resizable().scaledToFill()
                                     } placeholder: {
                                         Image(systemName: "globe")
-                                            .font(.system(size: 10))
+                                            .font(.caption2)
                                             .foregroundStyle(Palette.textTertiary)
                                     }
                                     .frame(width: 15, height: 15)
@@ -423,7 +425,7 @@ struct CitationsView: View {
                                             .foregroundStyle(Palette.textPrimary)
                                             .lineLimit(1)
                                         Text(citation.title)
-                                            .font(.system(size: 10))
+                                            .font(.caption2)
                                             .foregroundStyle(Palette.textTertiary)
                                             .lineLimit(1)
                                             .frame(maxWidth: 150, alignment: .leading)
@@ -482,7 +484,7 @@ struct AskUserSheet: View {
                 VStack(alignment: .leading, spacing: 16) {
                     HStack(spacing: 10) {
                         Image(systemName: "questionmark.bubble.fill")
-                            .font(.system(size: 20))
+                            .font(.title3)
                             .foregroundStyle(Palette.accent)
                         VStack(alignment: .leading, spacing: 2) {
                             if let header = question.header, !header.isBlank {
@@ -497,7 +499,7 @@ struct AskUserSheet: View {
                     }
                     .padding(16)
                     .frame(maxWidth: .infinity, alignment: .leading)
-                    .panel(cornerRadius: 14)
+                    .panel()
 
                     VStack(spacing: 9) {
                         ForEach(question.options) { option in
@@ -514,7 +516,7 @@ struct AskUserSheet: View {
                                 .lineLimit(2...5)
                                 .font(.obCallout)
                                 .padding(12)
-                                .glassEffect(.regular, in: .rect(cornerRadius: 14))
+                                .inputSurface(cornerRadius: 14)
                         }
                     }
                 }
@@ -532,7 +534,7 @@ struct AskUserSheet: View {
                     }
                 }
             }
-            .safeAreaInset(edge: .bottom) {
+            .safeAreaBar(edge: .bottom) {
                 VStack(spacing: 6) {
                     GlassActionButton(
                         title: "Send answer",
@@ -548,7 +550,6 @@ struct AskUserSheet: View {
                 .padding(.horizontal, 18)
                 .padding(.top, 10)
                 .padding(.bottom, 6)
-                .bottomFade()
             }
         }
         .presentationDetents([.medium, .large])
@@ -567,7 +568,7 @@ struct AskUserSheet: View {
         } label: {
             HStack(spacing: 12) {
                 Image(systemName: isSelected ? "checkmark.circle.fill" : "circle")
-                    .font(.system(size: 18))
+                    .font(.body)
                     .foregroundStyle(isSelected ? Palette.accent : Palette.textTertiary.opacity(0.6))
                 VStack(alignment: .leading, spacing: 2) {
                     HStack(spacing: 6) {
@@ -594,7 +595,7 @@ struct AskUserSheet: View {
             .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
-        .panel(cornerRadius: 16, tint: isSelected ? Palette.accent.opacity(0.12) : nil, interactive: true)
+        .panel(tint: isSelected ? Palette.accent.opacity(0.12) : nil)
         .overlay(
             RoundedRectangle(cornerRadius: 16, style: .continuous)
                 .strokeBorder(isSelected ? Palette.accent.opacity(0.5) : Palette.stroke, lineWidth: 1)

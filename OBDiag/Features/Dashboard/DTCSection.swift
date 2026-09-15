@@ -20,7 +20,7 @@ struct DTCSection: View {
                         ProgressView().controlSize(.small)
                     } else {
                         Image(systemName: "arrow.clockwise")
-                            .font(.system(size: 13, weight: .semibold))
+                            .font(.footnote.weight(.semibold))
                     }
                 }
                 .buttonStyle(.glass)
@@ -30,7 +30,6 @@ struct DTCSection: View {
             }
 
             if !obd.dtcs.isEmpty {
-                summaryChips
                 VStack(spacing: 0) {
                     ForEach(Array(obd.dtcs.enumerated()), id: \.element.id) { index, code in
                         DTCRow(code: code) { onSelect(code) }
@@ -40,7 +39,7 @@ struct DTCSection: View {
                     }
                 }
                 .padding(.vertical, 4)
-                .panel(cornerRadius: 14)
+                .panel()
 
                 HStack(spacing: 10) {
                     GlassSecondaryButton(title: "Clear codes", systemImage: "trash") {
@@ -51,7 +50,7 @@ struct DTCSection: View {
             } else if obd.isConnected {
                 HStack(spacing: 12) {
                     Image(systemName: "checkmark.seal.fill")
-                        .font(.system(size: 22))
+                        .font(.title2)
                         .foregroundStyle(Palette.success)
                     VStack(alignment: .leading, spacing: 2) {
                         Text("No fault codes")
@@ -64,11 +63,11 @@ struct DTCSection: View {
                     Spacer(minLength: 0)
                 }
                 .padding(14)
-                .panel(cornerRadius: 14, tint: Palette.success.opacity(0.10))
+                .panel(tint: Palette.success.opacity(0.10))
             } else {
                 HStack(spacing: 12) {
                     Image(systemName: "exclamationmark.triangle")
-                        .font(.system(size: 18))
+                        .font(.body)
                         .foregroundStyle(Palette.amber)
                     Text("Connect an adapter to read fault codes. Last known codes for this vehicle stay visible in the garage.")
                         .font(.obCaption)
@@ -76,7 +75,7 @@ struct DTCSection: View {
                     Spacer(minLength: 0)
                 }
                 .padding(14)
-                .panel(cornerRadius: 14)
+                .panel()
             }
         }
     }
@@ -85,18 +84,13 @@ struct DTCSection: View {
         if obd.isScanningDTCs { return "Scanning all code types…" }
         if !obd.isConnected { return "Not connected" }
         if obd.dtcs.isEmpty { return "All clear" }
-        return "\(obd.storedCodes.count) stored · \(obd.pendingCodes.count) pending · \(obd.permanentCodes.count) permanent"
+        var parts = ["\(obd.storedCodes.count) stored"]
+        if !obd.pendingCodes.isEmpty { parts.append("\(obd.pendingCodes.count) pending") }
+        if !obd.permanentCodes.isEmpty { parts.append("\(obd.permanentCodes.count) permanent") }
+        if let worst = obd.worstSeverity { parts.append("worst \(worst.title.lowercased())") }
+        return parts.joined(separator: " · ")
     }
 
-    private var summaryChips: some View {
-        HStack(spacing: 8) {
-            if let worst = obd.worstSeverity {
-                GlassChip(text: worst.title, systemImage: worst.icon, tint: worst.color)
-            }
-            GlassChip(text: "\(obd.dtcs.count) total", systemImage: "number", tint: Palette.textSecondary)
-            Spacer()
-        }
-    }
 }
 
 struct DTCRow: View {
@@ -107,7 +101,7 @@ struct DTCRow: View {
         Button(action: onSelect) {
             HStack(spacing: 12) {
                 Text(code.code)
-                    .font(.obMono(16, weight: .bold))
+                    .obMono(16, weight: .bold)
                     .foregroundStyle(code.severity.color)
                     .frame(width: 62, alignment: .leading)
                 VStack(alignment: .leading, spacing: 3) {
@@ -129,7 +123,7 @@ struct DTCRow: View {
                 }
                 Spacer(minLength: 4)
                 Image(systemName: "chevron.right")
-                    .font(.system(size: 12, weight: .semibold))
+                    .font(.caption.weight(.semibold))
                     .foregroundStyle(Palette.textTertiary)
             }
             .padding(.horizontal, 14)
@@ -200,7 +194,7 @@ struct DTCDetailView: View {
         }
         .padding(16)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .panel(cornerRadius: 14)
+        .panel()
     }
 
     private func section(_ title: String, body: String) -> some View {
@@ -212,7 +206,7 @@ struct DTCDetailView: View {
         }
         .padding(14)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .panel(cornerRadius: 14)
+        .panel()
     }
 
     private func list(_ title: String, items: [String], icon: String) -> some View {
@@ -235,7 +229,7 @@ struct DTCDetailView: View {
         }
         .padding(14)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .panel(cornerRadius: 14)
+        .panel()
     }
 
     private var freezeFrame: some View {
@@ -250,18 +244,18 @@ struct DTCDetailView: View {
                         .foregroundStyle(Palette.textTertiary)
                     Spacer()
                     Text(item.value)
-                        .font(.obMono(13, weight: .medium))
+                        .obMono(13, weight: .medium)
                         .foregroundStyle(Palette.textPrimary)
                 }
             }
         }
         .padding(14)
-        .panel(cornerRadius: 14)
+        .panel()
     }
 
     private var askAssistantCard: some View {
         VStack(alignment: .leading, spacing: 10) {
-            Label("Get a vehicle-specific plan", systemImage: "sparkles")
+            Label("Get a vehicle-specific plan", systemImage: "bubble.left.and.text.bubble.right")
                 .font(.obHeadline)
                 .foregroundStyle(Palette.textPrimary)
             Text("The assistant can combine this code with your live readings, find the factory diagnostic procedure and point to parts and videos.")
@@ -277,7 +271,7 @@ struct DTCDetailView: View {
             }
         }
         .padding(14)
-        .panel(cornerRadius: 14, tint: Palette.accent.opacity(0.10))
+        .panel(tint: Palette.accent.opacity(0.10))
     }
 }
 
@@ -306,7 +300,7 @@ struct ClearCodesSheet: View {
                         bullet("If the underlying fault is still present, the code will return. Clearing is a reset, not a repair.")
                     }
                     .padding(14)
-                    .panel(cornerRadius: 14)
+                    .panel()
 
                     if let resultMessage {
                         HStack(alignment: .top, spacing: 10) {
@@ -318,7 +312,7 @@ struct ClearCodesSheet: View {
                             Spacer(minLength: 0)
                         }
                         .padding(14)
-                        .panel(cornerRadius: 14, tint: (didSucceed ? Palette.success : Palette.danger).opacity(0.10))
+                        .panel(tint: (didSucceed ? Palette.success : Palette.danger).opacity(0.10))
                     }
 
                     Toggle(isOn: $understood) {
@@ -328,7 +322,7 @@ struct ClearCodesSheet: View {
                     }
                     .tint(Palette.accent)
                     .padding(14)
-                    .panel(cornerRadius: 14)
+                    .panel()
 
                     GlassActionButton(
                         title: didSucceed ? "Done" : "Clear fault codes",

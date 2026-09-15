@@ -4,6 +4,7 @@ import SwiftUI
 /// grid. This is the heart of the app when hardware is attached.
 struct VehicleDashboardView: View {
     @Environment(AppEnvironment.self) private var env
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
 
     @State private var showDeviceScan = false
     @State private var showClearCodes = false
@@ -28,7 +29,6 @@ struct VehicleDashboardView: View {
                         onClear: { showClearCodes = true }
                     )
                     sensorsSection
-                    if obd.isConnected { footerActions }
                 }
                 .padding(.horizontal, 16)
                 .padding(.bottom, 26)
@@ -53,15 +53,22 @@ struct VehicleDashboardView: View {
                             }
                         }
                         Divider()
-                        Button {
-                            showDebugLog = true
-                        } label: {
-                            Label("Raw OBD log", systemImage: "terminal")
+                        if obd.isConnected {
+                            Button {
+                                detectVehicle()
+                            } label: {
+                                Label("Detect vehicle from VIN", systemImage: "car.badge.gearshape")
+                            }
                         }
                         Button {
                             showAllSensors = true
                         } label: {
                             Label("All sensors", systemImage: "list.bullet.rectangle")
+                        }
+                        Button {
+                            showDebugLog = true
+                        } label: {
+                            Label("Raw OBD log", systemImage: "terminal")
                         }
                     } label: {
                         Image(systemName: "ellipsis.circle")
@@ -115,7 +122,7 @@ struct VehicleDashboardView: View {
                     Text(env.garage.selectedVehicle?.displayName ?? "No vehicle selected")
                         .font(.obTitle2)
                         .foregroundStyle(Palette.textPrimary)
-                        .lineLimit(1)
+                        .lineLimit(2)
                     Text(statusSubtitle)
                         .font(.obCaption)
                         .foregroundStyle(Palette.textSecondary)
@@ -125,26 +132,10 @@ struct VehicleDashboardView: View {
                 StatusDot(color: statusColor, pulsing: obd.isConnected)
             }
 
-            ScrollView(.horizontal, showsIndicators: false) {
-                HStack(spacing: 8) {
-                    GlassChip(text: obd.connectionState.shortLabel, systemImage: obd.isConnected ? "bolt.fill" : "bolt.slash",
-                              tint: statusColor)
-                    if let info = obd.adapterInfo {
-                        if let protocolName = info.protocolName {
-                            GlassChip(text: Self.shortProtocol(protocolName), systemImage: "cable.connector",
-                                      tint: Palette.textSecondary)
-                        }
-                        if let voltage = info.voltage {
-                            GlassChip(text: String(format: "%.1f V", voltage), systemImage: "car.battery", tint: Palette.textSecondary)
-                        }
-                    }
-                    if !obd.supportedKinds.isEmpty {
-                        GlassChip(text: "\(obd.supportedKinds.count) sensors", systemImage: "gauge.with.dots.needle.67percent", tint: Palette.textSecondary)
-                    }
-                    if obd.isDemo {
-                        GlassChip(text: "Simulated", systemImage: "sparkles", tint: Palette.purple)
-                    }
-                }
+            if obd.isConnected {
+                Text(connectionSummary)
+                    .font(.obCaption)
+                    .foregroundStyle(Palette.textSecondary)
             }
 
             connectionControls
@@ -165,7 +156,7 @@ struct VehicleDashboardView: View {
             }
         }
         .padding(16)
-        .panel(cornerRadius: 24)
+        .panel()
     }
 
     private var vehicleAvatar: some View {
@@ -174,9 +165,21 @@ struct VehicleDashboardView: View {
                 .fill(Palette.accent.opacity(0.15))
                 .frame(width: 52, height: 52)
             Image(systemName: env.garage.selectedVehicle?.isDirectConnection == true ? "bolt.horizontal" : "car.fill")
-                .font(.system(size: 21, weight: .medium))
+                .font(.title3.weight(.medium))
                 .foregroundStyle(Palette.accent)
         }
+    }
+
+    /// "Demo · CAN · 14.1 V · 37 sensors"
+    private var connectionSummary: String {
+        var parts: [String] = []
+        if obd.isDemo { parts.append("Demo") }
+        if let info = obd.adapterInfo {
+            if let protocolName = info.protocolName { parts.append(Self.shortProtocol(protocolName)) }
+            if let voltage = info.voltage { parts.append(String(format: "%.1f V", voltage)) }
+        }
+        if !obd.supportedKinds.isEmpty { parts.append("\(obd.supportedKinds.count) sensors") }
+        return parts.joined(separator: " · ")
     }
 
     /// "ISO 15765-4 (CAN 11/500)" → "CAN 11/500"
@@ -210,17 +213,25 @@ struct VehicleDashboardView: View {
 
     private var statusColor: Color {
         switch obd.connectionState {
-        case .connected: return obd.isDemo ? Palette.purple : Palette.success
+        case .connected: return Palette.success
         case .scanning, .connecting, .initializing: return Palette.amber
         case .failed, .bluetoothUnavailable: return Palette.danger
         case .disconnected: return Palette.textTertiary
         }
     }
 
+    /// Side by side normally; stacked at accessibility text sizes so the
+    /// labels never hyphenate.
+    private var controlsLayout: AnyLayout {
+        dynamicTypeSize.isAccessibilitySize
+            ? AnyLayout(VStackLayout(spacing: 10))
+            : AnyLayout(HStackLayout(spacing: 10))
+    }
+
     @ViewBuilder
     private var connectionControls: some View {
         if obd.isConnected {
-            HStack(spacing: 10) {
+            controlsLayout {
                 GlassSecondaryButton(title: "Scan codes", systemImage: "arrow.clockwise") {
                     Task { await obd.refreshDTCs() }
                 }
@@ -230,13 +241,13 @@ struct VehicleDashboardView: View {
                 }
             }
         } else {
-            HStack(spacing: 10) {
+            controlsLayout {
                 GlassActionButton(title: "Scan for adapter", systemImage: "dot.radiowaves.left.and.right", isLoading: obd.connectionState.isBusy) {
                     Haptics.tap()
                     showDeviceScan = true
                     obd.startScan()
                 }
-                GlassSecondaryButton(title: "Demo", systemImage: "sparkles") {
+                GlassSecondaryButton(title: "Demo", systemImage: "play.circle") {
                     Haptics.tap()
                     Task { await obd.connectDemo() }
                 }
@@ -268,7 +279,7 @@ struct VehicleDashboardView: View {
         if let message = obd.vinMismatchMessage {
             HStack(alignment: .top, spacing: 12) {
                 Image(systemName: "car.badge.gearshape")
-                    .font(.system(size: 20))
+                    .font(.title3)
                     .foregroundStyle(Palette.accent)
                 VStack(alignment: .leading, spacing: 6) {
                     Text("Vehicle detected")
@@ -293,7 +304,7 @@ struct VehicleDashboardView: View {
                 Spacer(minLength: 0)
             }
             .padding(14)
-            .panel(cornerRadius: 14, tint: Palette.accent.opacity(0.10))
+            .panel(tint: Palette.accent.opacity(0.10))
         }
     }
 
@@ -304,7 +315,6 @@ struct VehicleDashboardView: View {
             SectionHeader(title: "Live sensors", subtitle: sensorSubtitle) {
                 if !obd.supportedKinds.isEmpty {
                     Button("All") { showAllSensors = true }
-                        .font(.obCaption)
                         .buttonStyle(.glass)
                         .controlSize(.small)
                 }
@@ -358,41 +368,28 @@ struct VehicleDashboardView: View {
                 Haptics.tap()
                 Task { await obd.connectDemo() }
             } label: {
-                Label("Explore with demo mode", systemImage: "sparkles")
+                Label("Explore with demo mode", systemImage: "play.circle")
                     .font(.obCallout.weight(.semibold))
-                    .foregroundStyle(Palette.purple)
+                    .foregroundStyle(Palette.accent)
             }
             .buttonStyle(.plain)
         }
         .frame(maxWidth: .infinity)
         .padding(.vertical, 10)
-        .panel(cornerRadius: 14)
+        .panel()
     }
 
-    // MARK: Footer
+    // MARK: Actions
 
-    private var footerActions: some View {
-        VStack(spacing: 10) {
-            GlassSecondaryButton(title: "Automated vehicle detection", systemImage: "car.badge.gearshape") {
-                if obd.detectedVIN == nil {
-                    Task {
-                        await obd.readVIN(force: true)
-                        if obd.detectedVIN != nil { showVINSheet = true }
-                    }
-                } else {
-                    showVINSheet = true
-                }
+    private func detectVehicle() {
+        if obd.detectedVIN == nil {
+            Task {
+                await obd.readVIN(force: true)
+                if obd.detectedVIN != nil { showVINSheet = true }
             }
-            Button {
-                showDebugLog = true
-            } label: {
-                Label("Raw OBD debug log", systemImage: "terminal")
-                    .font(.obCaption)
-                    .foregroundStyle(Palette.textTertiary)
-            }
-            .buttonStyle(.plain)
+        } else {
+            showVINSheet = true
         }
-        .padding(.top, 4)
     }
 }
 
@@ -403,17 +400,12 @@ struct SeverityBadge: View {
     var compact = false
 
     var body: some View {
-        HStack(spacing: 5) {
+        if compact {
             Image(systemName: severity.icon)
-                .font(.system(size: compact ? 10 : 11, weight: .bold))
-            if !compact {
-                Text(severity.title)
-                    .font(.obMicro)
-            }
+                .font(.caption2.weight(.bold))
+                .foregroundStyle(severity.color)
+        } else {
+            GlassChip(text: severity.title, systemImage: severity.icon, tint: severity.color)
         }
-        .foregroundStyle(severity.color)
-        .padding(.horizontal, compact ? 6 : 9)
-        .padding(.vertical, compact ? 3 : 5)
-        .glassEffect(.regular.tint(severity.color.opacity(0.15)), in: .capsule)
     }
 }

@@ -22,13 +22,13 @@ struct DetectedVINSheet: View {
                             .font(.obHeadline)
                             .foregroundStyle(Palette.textPrimary)
                         Text(vin)
-                            .font(.obMono(17, weight: .semibold))
+                            .obMono(17, weight: .semibold)
                             .foregroundStyle(Palette.accent)
                             .textSelection(.enabled)
                     }
                     .padding(16)
                     .frame(maxWidth: .infinity, alignment: .leading)
-                    .panel(cornerRadius: 14)
+                    .panel()
 
                     if isLoading {
                         HStack(spacing: 10) {
@@ -38,7 +38,7 @@ struct DetectedVINSheet: View {
                                 .foregroundStyle(Palette.textSecondary)
                         }
                         .padding(14)
-                        .panel(cornerRadius: 14)
+                        .panel()
                     } else if let decoded, decoded.isValid {
                         VStack(alignment: .leading, spacing: 9) {
                             detailRow("Year", decoded.year.map(String.init))
@@ -49,7 +49,7 @@ struct DetectedVINSheet: View {
                             detailRow("Fuel", decoded.fuelType)
                         }
                         .padding(14)
-                        .panel(cornerRadius: 14)
+                        .panel()
 
                         actions(for: decoded)
                     } else if let errorMessage {
@@ -65,7 +65,7 @@ struct DetectedVINSheet: View {
                                 .controlSize(.small)
                         }
                         .padding(14)
-                        .panel(cornerRadius: 14)
+                        .panel()
                     }
                 }
                 .padding(18)

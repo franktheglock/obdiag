@@ -62,7 +62,7 @@ struct AddVehicleFlow: View {
                     }
                 }
             }
-            .safeAreaInset(edge: .bottom) {
+            .safeAreaBar(edge: .bottom) {
                 bottomBar
             }
         }
@@ -126,7 +126,6 @@ struct AddVehicleFlow: View {
         .padding(.horizontal, 18)
         .padding(.top, 10)
         .padding(.bottom, 6)
-        .bottomFade()
     }
 
     @ViewBuilder
@@ -214,7 +213,7 @@ struct AddVehicleFlow: View {
                         .fill(Palette.accent.opacity(0.14))
                         .frame(width: 46, height: 46)
                     Image(systemName: icon)
-                        .font(.system(size: 19, weight: .semibold))
+                        .font(.body.weight(.semibold))
                         .foregroundStyle(Palette.accent)
                 }
                 VStack(alignment: .leading, spacing: 3) {
@@ -233,7 +232,7 @@ struct AddVehicleFlow: View {
                         .foregroundStyle(badge == "Ready" ? Palette.success : Palette.textTertiary)
                 }
                 Image(systemName: "chevron.right")
-                    .font(.system(size: 12, weight: .bold))
+                    .font(.caption.weight(.bold))
                     .foregroundStyle(Palette.textTertiary)
             }
             .padding(14)
@@ -258,9 +257,9 @@ struct AddVehicleFlow: View {
             TextField("e.g. 1HGCM82633A004352", text: $draft.vin)
                 .textInputAutocapitalization(.characters)
                 .autocorrectionDisabled()
-                .font(.obMono(17, weight: .medium))
+                .obMono(17, weight: .medium)
                 .padding(14)
-                .glassEffect(.regular, in: .rect(cornerRadius: 16))
+                .inputSurface(cornerRadius: 16)
                 .onChange(of: draft.vin) { _, newValue in
                     draft.vin = String(newValue.uppercased().filter { $0.isLetter || $0.isNumber }.prefix(17))
                     errorMessage = nil
@@ -364,7 +363,7 @@ struct AddVehicleFlow: View {
                         }
                     }
                     .padding(12)
-                    .panel(cornerRadius: 16, tint: Palette.amber.opacity(0.10))
+                    .panel(tint: Palette.amber.opacity(0.10))
                 }
 
                 Text("You can correct anything on the next step.")
@@ -383,8 +382,9 @@ struct AddVehicleFlow: View {
                 .font(.obCaption)
                 .foregroundStyle(Palette.textTertiary)
                 .frame(width: 74, alignment: .leading)
-            Text(value?.isEmpty == false ? value! : "—")
-                .font(mono ? .obMono(14, weight: .medium) : .obCallout)
+            let text = Text(value.flatMap { $0.isEmpty ? nil : $0 } ?? "—")
+            (mono ? text.monospacedDigit() : text)
+                .font(mono ? .subheadline.weight(.medium) : .obCallout)
                 .foregroundStyle(Palette.textPrimary)
             Spacer()
         }
@@ -621,7 +621,7 @@ struct VehicleLookupForm: View {
             content()
                 .padding(13)
                 .frame(maxWidth: .infinity, alignment: .leading)
-                .glassEffect(.regular, in: .rect(cornerRadius: 14))
+                .inputSurface(cornerRadius: 14)
         }
     }
 
@@ -632,7 +632,7 @@ struct VehicleLookupForm: View {
                 .foregroundStyle(Palette.textPrimary)
             Spacer()
             Image(systemName: "chevron.up.chevron.down")
-                .font(.system(size: 12, weight: .semibold))
+                .font(.caption.weight(.semibold))
                 .foregroundStyle(Palette.textTertiary)
         }
     }
@@ -745,7 +745,7 @@ struct VehicleDetailsForm: View {
                 content()
             }
             .padding(14)
-            .panel(cornerRadius: 14)
+            .panel()
         }
     }
 }

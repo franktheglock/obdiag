@@ -41,6 +41,7 @@ struct GarageView: View {
             }
             .screenBackground()
             .navigationTitle("Garage")
+            .navigationSubtitle(summary)
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
                     Button {
@@ -82,27 +83,20 @@ struct GarageView: View {
 
     // MARK: Sections
 
+    /// The title and summary live in the navigation bar; this row only
+    /// surfaces the fault total when there is one to act on.
+    @ViewBuilder
     private var garageHeader: some View {
-        HStack(alignment: .bottom) {
-            VStack(alignment: .leading, spacing: 4) {
-                Text("Your vehicles")
-                    .font(.obLargeTitle)
-                    .foregroundStyle(Palette.textPrimary)
-                Text(summary)
-                    .font(.obCallout)
-                    .foregroundStyle(Palette.textSecondary)
-            }
-            Spacer()
-            if env.garage.totalFaultCount > 0 {
-                GlassChip(
-                    text: "\(env.garage.totalFaultCount) code\(env.garage.totalFaultCount == 1 ? "" : "s")",
-                    systemImage: "exclamationmark.triangle.fill",
-                    tint: Palette.amber
-                )
-            }
+        if env.garage.totalFaultCount > 0 {
+            Label(
+                "\(env.garage.totalFaultCount) fault code\(env.garage.totalFaultCount == 1 ? "" : "s") across your garage",
+                systemImage: "exclamationmark.triangle.fill"
+            )
+            .font(.obCaption)
+            .foregroundStyle(Palette.textSecondary, Palette.amber)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .padding(.top, 4)
         }
-        .padding(.top, 8)
-        .padding(.bottom, 4)
     }
 
     private var summary: String {
@@ -110,7 +104,7 @@ struct GarageView: View {
         if count == 0 { return "Add a vehicle to get vehicle-specific answers." }
         let name = env.obd.adapterInfo?.name
         if let name, env.obd.isConnected {
-            return "\(count) saved · connected to \(name)"
+            return "\(count) saved · \(name) connected"
         }
         return "\(count) saved vehicle\(count == 1 ? "" : "s")"
     }
@@ -149,7 +143,7 @@ struct GarageView: View {
                 } label: {
                     HStack(spacing: 12) {
                         Image(systemName: "bolt.horizontal.circle.fill")
-                            .font(.system(size: 22))
+                            .font(.title2)
                             .foregroundStyle(Palette.accent)
                         VStack(alignment: .leading, spacing: 2) {
                             Text("Direct OBD Connection")
@@ -208,6 +202,7 @@ struct GarageView: View {
 // MARK: - Vehicle card
 
 struct VehicleCard: View {
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     let vehicle: Vehicle
     let isSelected: Bool
     let isLive: Bool
@@ -220,42 +215,41 @@ struct VehicleCard: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
             Button(action: onOpen) {
-                HStack(spacing: 13) {
-                    badge
-                    VStack(alignment: .leading, spacing: 3) {
-                        Text(vehicle.displayName)
-                            .font(.obTitle2)
-                            .foregroundStyle(Palette.textPrimary)
-                            .lineLimit(1)
-                        Text(vehicle.subtitle.isEmpty ? "No engine details yet" : vehicle.subtitle)
-                            .font(.obCaption)
-                            .foregroundStyle(Palette.textSecondary)
-                            .lineLimit(1)
+                headerLayout {
+                    HStack(spacing: 13) {
+                        badge
+                        VStack(alignment: .leading, spacing: 3) {
+                            Text(vehicle.displayName)
+                                .font(.obTitle2)
+                                .foregroundStyle(Palette.textPrimary)
+                                .lineLimit(2)
+                            Text(vehicle.subtitle.isEmpty ? "No engine details yet" : vehicle.subtitle)
+                                .font(.obCaption)
+                                .foregroundStyle(Palette.textSecondary)
+                                .lineLimit(2)
+                        }
+                        .layoutPriority(1)
                     }
                     Spacer(minLength: 6)
                     statusColumn
+                        .fixedSize()
                 }
                 .contentShape(Rectangle())
             }
             .buttonStyle(.plain)
 
             HStack(spacing: 8) {
-                if isSelected {
-                    GlassChip(text: "Selected", systemImage: "checkmark.circle.fill", tint: Palette.accent)
-                }
-                if let vin = vehicle.vin, !vin.isBlank {
-                    GlassChip(text: String(vin.suffix(6)), systemImage: "number", tint: Palette.textSecondary)
-                }
-                if let date = vehicle.lastConnectedAt {
-                    GlassChip(text: Format.relative(date), systemImage: "clock", tint: Palette.textTertiary)
-                }
+                Text(cardFooter)
+                    .font(.obCaption)
+                    .foregroundStyle(Palette.textTertiary)
+                    .lineLimit(2)
                 Spacer()
                 Menu {
                     Button { onEdit() } label: { Label("Edit vehicle", systemImage: "pencil") }
                     Button(role: .destructive) { onDelete() } label: { Label("Remove vehicle", systemImage: "trash") }
                 } label: {
                     Image(systemName: "ellipsis")
-                        .font(.system(size: 15, weight: .semibold))
+                        .font(.subheadline.weight(.semibold))
                         .foregroundStyle(Palette.textSecondary)
                         .frame(width: 32, height: 32)
                         .contentShape(Rectangle())
@@ -265,7 +259,7 @@ struct VehicleCard: View {
             }
         }
         .padding(15)
-        .panel(cornerRadius: 20, tint: isSelected ? Palette.accent.opacity(0.10) : nil)
+        .panel(tint: isSelected ? Palette.accent.opacity(0.10) : nil)
         .simultaneousGesture(TapGesture().onEnded { onSelect() })
         .contextMenu {
             Button { onEdit() } label: { Label("Edit", systemImage: "pencil") }
@@ -275,13 +269,27 @@ struct VehicleCard: View {
         .accessibilityHint("Double tap to open the dashboard for this vehicle")
     }
 
+    private var headerLayout: AnyLayout {
+        dynamicTypeSize.isAccessibilitySize
+            ? AnyLayout(VStackLayout(alignment: .leading, spacing: 10))
+            : AnyLayout(HStackLayout(spacing: 0))
+    }
+
+    private var cardFooter: String {
+        var parts: [String] = []
+        if isSelected { parts.append("Selected") }
+        if let vin = vehicle.vin, !vin.isBlank { parts.append("VIN …\(vin.suffix(6))") }
+        if let date = vehicle.lastConnectedAt { parts.append("Connected \(Format.relative(date))") }
+        return parts.joined(separator: " · ")
+    }
+
     private var badge: some View {
         ZStack {
             RoundedRectangle(cornerRadius: 14, style: .continuous)
                 .fill(Palette.accent.opacity(0.15))
                 .frame(width: 54, height: 54)
             Text(vehicle.initials)
-                .font(.system(size: 17, weight: .semibold))
+                .font(.body.weight(.semibold))
                 .foregroundStyle(Palette.accent)
         }
     }
@@ -291,14 +299,14 @@ struct VehicleCard: View {
             if faultCount > 0 {
                 HStack(spacing: 5) {
                     Image(systemName: "exclamationmark.triangle.fill")
-                        .font(.system(size: 12, weight: .bold))
+                        .font(.caption.weight(.bold))
                     Text("\(faultCount)")
-                        .font(.obMono(14, weight: .bold))
+                        .obMono(14, weight: .bold)
                 }
                 .foregroundStyle(Palette.amber)
             } else {
                 Image(systemName: "checkmark.seal.fill")
-                    .font(.system(size: 15))
+                    .font(.subheadline)
                     .foregroundStyle(Palette.success.opacity(0.85))
             }
             HStack(spacing: 5) {
