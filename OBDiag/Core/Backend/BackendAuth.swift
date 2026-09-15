@@ -23,7 +23,7 @@ final class BackendAuth: NSObject {
 
     private var currentNonce: String?
     private var signInContinuation: CheckedContinuation<Void, Error>?
-    private weak var presentationAnchor: ASPresentationAnchor?
+    private var presentationAnchor: ASPresentationAnchor?
 
     override init() {
         super.init()
@@ -67,7 +67,20 @@ final class BackendAuth: NSObject {
 
     // MARK: Sign in / out
 
-    func signInWithApple(anchor: ASPresentationAnchor? = nil) async throws {
+    /// Sign in with Apple needs an anchor to present from. Callers should pass
+    /// `keyWindowAnchor()`; it returns nil when there is no window scene, which
+    /// means there is no UI to present from.
+    static func keyWindowAnchor() -> ASPresentationAnchor? {
+        let scenes = UIApplication.shared.connectedScenes.compactMap { $0 as? UIWindowScene }
+        let windows = scenes.flatMap(\.windows)
+        if let key = windows.first(where: \.isKeyWindow) { return key }
+        if let first = windows.first { return first }
+        // iOS 26 deprecates constructing a window without a scene, so an anchor
+        // can only be derived from a real scene.
+        return scenes.first.map { ASPresentationAnchor(windowScene: $0) }
+    }
+
+    func signInWithApple(anchor: ASPresentationAnchor) async throws {
         guard BackendConfig.isFirebaseConfigured else { throw BackendError.notConfigured }
         guard !isSigningIn else { return }
 
@@ -194,9 +207,9 @@ extension BackendAuth: ASAuthorizationControllerDelegate {
 extension BackendAuth: ASAuthorizationControllerPresentationContextProviding {
     func presentationAnchor(for controller: ASAuthorizationController) -> ASPresentationAnchor {
         if let presentationAnchor { return presentationAnchor }
-        // Fall back to the key window; Sign in with Apple requires an anchor.
-        let scenes = UIApplication.shared.connectedScenes.compactMap { $0 as? UIWindowScene }
-        let window = scenes.flatMap(\.windows).first { $0.isKeyWindow }
-        return window ?? ASPresentationAnchor()
+        // Defensive: `signInWithApple(anchor:)` sets the anchor before calling
+        // performRequests(), so this only runs if that invariant is broken.
+        if let fallback = Self.keyWindowAnchor() { return fallback }
+        preconditionFailure("Sign in with Apple was started without a window scene")
     }
 }
