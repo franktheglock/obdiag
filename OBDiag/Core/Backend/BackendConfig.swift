@@ -7,7 +7,7 @@ import Foundation
 ///   - `region`    ↔ `REGION` in `server/functions/src/config.ts`
 enum BackendConfig {
     /// Firebase project id that hosts the functions.
-    static let projectID = "obdiag-app"
+    static let projectID = "YOUR_FIREBASE_PROJECT_ID"
     /// Region the callable functions are deployed to.
     static let region = "us-central1"
 

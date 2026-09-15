@@ -83,10 +83,12 @@ point the CLI and app at it.
    npx -y firebase-tools@latest use obdiag-app
    ```
 
-   | File | Setting |
-   | --- | --- |
-   | `OBDiag/Core/Backend/BackendConfig.swift` | `projectID` |
-   | `server/.firebaserc` | `projects.default` |
+   | File | Setting | Currently |
+   | --- | --- | --- |
+   | `OBDiag/Core/Backend/BackendConfig.swift` | `projectID` | `YOUR_FIREBASE_PROJECT_ID` |
+   | `server/.firebaserc` | `projects.default` | `YOUR_FIREBASE_PROJECT_ID` |
+
+   Both are already set. Change them if you use a different project.
 
    `region` in `BackendConfig.swift` must match `REGION` in
    `server/functions/src/config.ts` (default `us-central1`).
