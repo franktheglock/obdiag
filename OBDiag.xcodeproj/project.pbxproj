@@ -65,6 +65,7 @@
 		BA0871B0FBB77B04CE2664C6 /* CallableClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 40932161B75C7ACB66CC9FF2 /* CallableClient.swift */; };
 		BA109B0C816ACB429CC3548D /* AboutView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 79B7E6CE5BF3F96B9CC9F3CF /* AboutView.swift */; };
 		BA25FFED6414AE1351FEABB2 /* AppCheckProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 68ADF152E52680FDA5CA5545 /* AppCheckProvider.swift */; };
+		BC934C7863C691E3F526D431 /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = 735BADFD37A96DE8831F34B3 /* GoogleService-Info.plist */; };
 		BCA04C68A05813BF9FDC77A2 /* MessageAttachment.swift in Sources */ = {isa = PBXBuildFile; fileRef = AE2750AD4BB3763F7BB40D8A /* MessageAttachment.swift */; };
 		C34A45E197B782D77630D05F /* ToolRegistry.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD793AD9E7439A9B87580C61 /* ToolRegistry.swift */; };
 		C5A514F8509E8582E900EF30 /* AppSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = F8C88724ABE6EB7A523ED04D /* AppSettings.swift */; };
@@ -135,6 +136,7 @@
 		6FB57E9439FC6942A90F45AC /* CreditLedger.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CreditLedger.swift; sourceTree = "<group>"; };
 		70A376A5E4D182295249F644 /* OBDiagApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OBDiagApp.swift; sourceTree = "<group>"; };
 		7213EC96447DF8BA94920BB3 /* GlobalConnectionBanner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GlobalConnectionBanner.swift; sourceTree = "<group>"; };
+		735BADFD37A96DE8831F34B3 /* GoogleService-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = "GoogleService-Info.plist"; sourceTree = "<group>"; };
 		75C1F64ABB640607E76C344E /* SearchSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SearchSettingsView.swift; sourceTree = "<group>"; };
 		79B7E6CE5BF3F96B9CC9F3CF /* AboutView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AboutView.swift; sourceTree = "<group>"; };
 		7E32879BB2582EA4F0CD87ED /* Extensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Extensions.swift; sourceTree = "<group>"; };
@@ -321,6 +323,7 @@
 			isa = PBXGroup;
 			children = (
 				ABFB8BCC76E420B08BD01B76 /* Assets.xcassets */,
+				735BADFD37A96DE8831F34B3 /* GoogleService-Info.plist */,
 			);
 			path = Resources;
 			sourceTree = "<group>";
@@ -544,6 +547,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				59CC6E03C0DCB5FC947A57E4 /* Assets.xcassets in Resources */,
+				BC934C7863C691E3F526D431 /* GoogleService-Info.plist in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
